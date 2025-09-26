@@ -1,4 +1,4 @@
-Collecting workspace information# Twilio WhatsApp Bot
+# Twilio WhatsApp Bot
 
 ## Descripción
 Este proyecto implementa un bot para enviar mensajes a través de WhatsApp utilizando la API de Twilio. Está diseñado siguiendo los principios de arquitectura limpia (Clean Architecture) para mantener una separación clara de responsabilidades y facilitar pruebas y mantenimiento.
