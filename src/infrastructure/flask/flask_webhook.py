@@ -3,9 +3,16 @@ Path: src/infrastructure/flask/flask_webhook.py
 """
 
 from flask import Flask, request, Response
+
+from src.interface_adapter.controller.incoming_message_controller import IncomingMessageController
+from src.interface_adapter.presenters.twilio_presenter import TwilioPresenter
+from src.use_cases.process_incoming_message_use_case import ProcessIncomingMessageUseCase
 from src.entities.conversation import Conversation
 
 conversation = Conversation()
+process_message_use_case = ProcessIncomingMessageUseCase(conversation)
+incoming_message_controller = IncomingMessageController(process_message_use_case)
+twilio_presenter = TwilioPresenter()
 
 def run_flask_webhook(host="0.0.0.0", port=5000):
     "Inicia un servidor Flask para manejar webhooks de Twilio."
@@ -19,15 +26,8 @@ def run_flask_webhook(host="0.0.0.0", port=5000):
         from_number = data.get('From', '')
         print(f"[Twilio] Mensaje recibido de {from_number}: {user_message}")
 
-        conversation.add_message(str(from_number), user_message)
-
-        _prompt = conversation.get_prompt()
-
-        response_text = f"Recibido tu mensaje '{user_message}'. Esta es una respuesta simulada."
-
-        conversation.add_message("Bot", response_text)
-
-        twiml = f"<Response><Message>{response_text}</Message></Response>"
+        response_text = incoming_message_controller.handle(from_number, user_message)
+        twiml = twilio_presenter.present(response_text)
         return Response(twiml, mimetype='application/xml')
 
     print(f"[Twilio] Modo respuesta. Iniciando webhook Flask en http://{host}:{port}/webhook ...")
