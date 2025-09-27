@@ -1,6 +1,6 @@
 """
 Path: src/infrastructure/google_generativeai/gemini_service.py
-python -m src.infrastructure.google_generativeai.gemini_service 2>$null
+python -m src.infrastructure.google_generativeai.gemini_service
 """
 
 import os
@@ -43,11 +43,11 @@ class GeminiService:
 
 # Ejemplo de uso CLI
 if __name__ == "__main__":
+    from src.use_cases.generate_gemini_response_use_case import GenerateGeminiResponseUseCase
     try:
-        service = GeminiService()
-
+        use_case = GenerateGeminiResponseUseCase()
         user_input = input("Usuario: ")
-        print("Bot:", service.get_response(user_input))
+        print("Bot:", use_case.execute(user_input))
     except ValueError as e:
         logger.critical("Error fatal en CLI: %s", e)
     except (KeyError, AttributeError, RuntimeError) as e:

@@ -4,7 +4,7 @@ Path: src/interface_adapter/controller/whatsapp_message_controller.py
 
 
 from src.use_cases.send_whatsapp_message_use_case import send_whatsapp_message_use_case
-from src.entities.whatsapp_message import WhatsappMessage
+from src.entitie.whatsapp_message import WhatsappMessage
 
 class WhatsappMessageController:
     "Controlador para el envío de mensajes WhatsApp usando arquitectura limpia."
