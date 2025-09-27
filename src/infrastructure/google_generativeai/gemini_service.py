@@ -10,14 +10,11 @@ import dotenv
 from src.shared.logger import get_logger
 from src.shared.config import get_config
 
+from src.entities.gemini_responder import GeminiResponder
+
 dotenv.load_dotenv()
 logger = get_logger("gemini-service")
 
-class GeminiResponder:
-    "Abstracción para servicios que generan respuestas a partir de un prompt."
-    def get_response(self, _prompt):
-        " Genera una respuesta a partir del prompt dado."
-        raise NotImplementedError("Debe implementar get_response(prompt)")
 
 class GeminiService(GeminiResponder):
     "Servicio para interactuar con el modelo Gemini de Google."

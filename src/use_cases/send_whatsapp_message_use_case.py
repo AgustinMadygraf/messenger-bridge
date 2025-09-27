@@ -3,7 +3,7 @@ Path: src/use_cases/send_whatsapp_message_use_case.py
 """
 
 from abc import ABC, abstractmethod
-from src.entitie.whatsapp_message import WhatsappMessage
+from src.entities.whatsapp_message import WhatsappMessage
 
 class MessageSender(ABC):
     " Abstracción para enviar mensajes. "

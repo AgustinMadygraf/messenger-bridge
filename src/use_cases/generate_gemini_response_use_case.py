@@ -2,13 +2,15 @@
 Path: src/use_cases/generate_gemini_response_use_case.py
 """
 
-from src.infrastructure.google_generativeai.gemini_service import GeminiService
+from src.entities.gemini_responder import GeminiResponder
 
 class GenerateGeminiResponseUseCase:
     "Caso de uso para generar una respuesta usando el modelo Gemini."
 
-    def __init__(self, responder=None):
-        self.responder = responder or GeminiService()
+    def __init__(self, responder):
+        if not isinstance(responder, GeminiResponder):
+            raise TypeError("El responder debe implementar la interfaz GeminiResponder")
+        self.responder = responder
 
     def execute(self, prompt):
         "Ejecuta el caso de uso: recibe un prompt y retorna la respuesta generada por Gemini."

@@ -1,5 +1,6 @@
 """
-Path: src/entitie/whatsapp_message.py"""
+Path: src/entities/whatsapp_message.py
+"""
 
 class WhatsappMessage:
     "Entidad que representa un mensaje de WhatsApp."
