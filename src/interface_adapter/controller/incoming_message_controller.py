@@ -2,13 +2,17 @@
 Path: src/interface_adapter/controller/incoming_message_controller.py
 """
 
-from src.use_cases.process_incoming_message_use_case import ProcessIncomingMessageUseCase
 
 class IncomingMessageController:
     "Controlador para manejar mensajes entrantes."
-    def __init__(self, use_case: ProcessIncomingMessageUseCase):
+    def __init__(self, use_case, conversation):
         self.use_case = use_case
+        self.conversation = conversation
 
     def handle(self, from_number: str, user_message: str) -> str:
         "Orquesta el procesamiento del mensaje entrante."
-        return self.use_case.execute(from_number, user_message)
+        self.conversation.add_message(str(from_number), user_message)
+        prompt = self.conversation.get_prompt()
+        response = self.use_case.execute(prompt)
+        self.conversation.add_message("Bot", response)
+        return response
