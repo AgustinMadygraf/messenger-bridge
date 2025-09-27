@@ -1,7 +1,7 @@
 """
 Path: src/infrastructure/google_generativeai/gemini_service.py
-python -m src.infrastructure.google_generativeai.gemini_service
 """
+
 
 import os
 import google.generativeai as genai
@@ -13,7 +13,13 @@ from src.shared.config import get_config
 dotenv.load_dotenv()
 logger = get_logger("gemini-service")
 
-class GeminiService:
+class GeminiResponder:
+    "Abstracción para servicios que generan respuestas a partir de un prompt."
+    def get_response(self, _prompt):
+        " Genera una respuesta a partir del prompt dado."
+        raise NotImplementedError("Debe implementar get_response(prompt)")
+
+class GeminiService(GeminiResponder):
     "Servicio para interactuar con el modelo Gemini de Google."
     def __init__(self, api_key=None):
         try:
@@ -40,15 +46,3 @@ class GeminiService:
         except ValueError as e:
             logger.error("Error al generar respuesta: %s", e)
             return f"Error al generar respuesta con Gemini: {e}"
-
-# Ejemplo de uso CLI
-if __name__ == "__main__":
-    from src.use_cases.generate_gemini_response_use_case import GenerateGeminiResponseUseCase
-    try:
-        use_case = GenerateGeminiResponseUseCase()
-        user_input = input("Usuario: ")
-        print("Bot:", use_case.execute(user_input))
-    except ValueError as e:
-        logger.critical("Error fatal en CLI: %s", e)
-    except (KeyError, AttributeError, RuntimeError) as e:
-        logger.critical("Ocurrió un error inesperado: %s", e)
