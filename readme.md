@@ -4,8 +4,8 @@
 Este proyecto implementa un bot para enviar mensajes a través de WhatsApp utilizando la API de Twilio. Está diseñado siguiendo los principios de arquitectura limpia (Clean Architecture) para mantener una separación clara de responsabilidades y facilitar pruebas y mantenimiento.
 
 El sistema permite dos modos de operación:
-- **Modo Twilio**: Envía mensajes reales usando la API de Twilio
-- **Modo CLI**: Simula el envío de mensajes (útil para desarrollo y pruebas)
+- **Modo Twilio Plantilla**: Envía mensajes reales usando la API de Twilio con plantilla
+- **Modo CLI Plantilla**: Simula el envío de mensajes por CLI con plantilla (útil para desarrollo y pruebas)
 
 ## Estructura del proyecto
 ```
@@ -67,12 +67,12 @@ TWILIO_WHATSAPP_TO=whatsapp:+1234567890
 ## Uso
 ### Modo Twilio (envío real)
 ```bash
-python run.py --twilio
+python run.py --twilio-plantilla
 ```
 
 ### Modo CLI (simulación)
 ```bash
-python run.py --cli
+python run.py --cli-plantilla
 ```
 
 ## Variables de contenido

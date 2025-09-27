@@ -8,4 +8,5 @@ class CliPresenter:
         "Convierte el resultado en un mensaje para mostrar en CLI."
         if isinstance(result, str):
             return f"[CLI] Resultado: {result}"
-        return f"[CLI] Respuesta: {repr(result)}"
+        else:
+            return f"[CLI] Respuesta: {repr(result)}"

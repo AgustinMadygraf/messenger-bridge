@@ -16,20 +16,34 @@ from src.interface_adapter.presenters.cli_presenter import CliPresenter
 
 if __name__ == "__main__":
     logger = get_logger("twilio-bot.run")
-    parser = argparse.ArgumentParser(description="Enviar mensaje WhatsApp por Twilio o CLI")
-    parser.add_argument('--twilio', action='store_true', help='Usar Twilio para enviar el mensaje')
-    parser.add_argument('--cli', action='store_true', help='Simular envío de mensaje por CLI')
+    parser = argparse.ArgumentParser(description="Enviar mensaje WhatsApp por Twilio o CLI (plantilla)")
+    parser.add_argument('--twilio-plantilla', action='store_true', help='Usar Twilio para enviar el mensaje con plantilla')
+    parser.add_argument('--cli-plantilla', action='store_true', help='Simular envío de mensaje por CLI con plantilla')
+    parser.add_argument('--cli-respuesta', action='store_true', help='Simular recepción y respuesta de mensajes por CLI')
+    parser.add_argument('--twilio-respuesta', action='store_true', help='Recibir y responder mensajes reales por Twilio (webhook)')
     args = parser.parse_args()
 
     config = get_config()
-    if args.twilio:
+    if args.twilio_plantilla:
         sender = TwilioMessageSender(config["WHATSAPP_FROM"])
         gateway = TwilioGateway(sender, config["WHATSAPP_FROM"])
-    elif args.cli:
+    elif args.cli_plantilla:
         sender = CliMessageSender()
         gateway = CliGateway(sender)
+    elif args.cli_respuesta:
+        # Modo CLI respuesta: simula recepción y respuesta
+        print("[CLI] Modo respuesta. Escribe un mensaje para simular recepción:")
+        user_input = input("Usuario: ")
+        SIMULATED_RESPONSE = f"Bot: Recibido tu mensaje '{user_input}'. Esta es una respuesta simulada."
+        print(SIMULATED_RESPONSE)
+        exit(0)
+    elif args.twilio_respuesta:
+        # Modo Twilio respuesta: inicia webhook Flask
+        from src.infrastructure.flask.flask_webhook import run_flask_webhook
+        run_flask_webhook()
+        exit(0)
     else:
-        logger.error("Debe especificar --twilio o --cli")
+        logger.error("Debe especificar --twilio-plantilla, --cli-plantilla, --cli-respuesta o --twilio-respuesta")
         exit(1)
 
     CONTROLLER = WhatsappMessageController(gateway)
