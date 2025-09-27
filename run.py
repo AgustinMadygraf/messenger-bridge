@@ -11,6 +11,7 @@ from src.composer_root import (
     compose_cli_respuesta,
     compose_twilio_respuesta
 )
+from src.entities.conversation import Conversation
 
 if __name__ == "__main__":
     logger = get_logger("twilio-bot.run")
@@ -27,7 +28,7 @@ if __name__ == "__main__":
         controller, presenter, config = compose_cli_plantilla()
     elif args.cli_respuesta:
         controller, presenter = compose_cli_respuesta()
-        conversation_history = []
+        conversation = Conversation()
         print("[CLI] Modo respuesta. Escribe un mensaje para simular recepción (escribe 'salir' para terminar):")
         try:
             while True:
@@ -35,10 +36,10 @@ if __name__ == "__main__":
                 if user_input.strip().lower() in ("salir", "exit", "quit"):
                     print("Saliendo del modo CLI respuesta.")
                     break
-                conversation_history.append(f"Usuario: {user_input}")
-                PROMPT = "\n".join(conversation_history)
+                conversation.add_message("Usuario", user_input)
+                PROMPT = conversation.get_prompt()
                 response = controller.handle_prompt(PROMPT)
-                conversation_history.append(f"Bot: {response}")
+                conversation.add_message("Bot", response)
                 print(presenter.present(response))
         except KeyboardInterrupt:
             print("\nInterrupción detectada. Saliendo del modo CLI respuesta.")

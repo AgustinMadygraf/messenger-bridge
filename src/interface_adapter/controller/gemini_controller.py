@@ -2,14 +2,34 @@
 Path: src/interface_adapter/controller/gemini_controller.py
 """
 
-class GeminiController:
-    "Controlador para orquestar la interacción entre la entrada del usuario y el caso de uso."
-    def __init__(self, use_case):
-        self.use_case = use_case
+from src.entities.conversation import Conversation
 
-    def handle_prompt(self, prompt):
-        "Recibe el prompt del usuario, lo valida y retorna la respuesta del caso de uso."
+class GeminiController:
+    "Controlador para orquestar la interacción entre la entrada del usuario y el caso de uso, gestionando el historial."
+    def __init__(self, use_case, conversation=None):
+        self.use_case = use_case
+        self.conversation = conversation or Conversation()
+
+    def handle_user_message(self, user_message):
+        "Agrega el mensaje del usuario, genera el prompt y retorna la respuesta del caso de uso."
+        self.conversation.add_message("Usuario", user_message)
+        prompt = self.conversation.get_prompt()
         try:
-            return self.use_case.execute(prompt)
+            response = self.use_case.execute(prompt)
+            self.conversation.add_message("Bot", response)
+            return response
         except ValueError as e:
             return f"Error: {e}"
+
+    def handle_prompt(self, prompt):
+        "Recibe un prompt completo, ejecuta el caso de uso y agrega la respuesta al historial."
+        try:
+            response = self.use_case.execute(prompt)
+            self.conversation.add_message("Bot", response)
+            return response
+        except ValueError as e:
+            return f"Error: {e}"
+
+    def clear_conversation(self):
+        "Limpia el historial de la conversación."
+        self.conversation.clear()
