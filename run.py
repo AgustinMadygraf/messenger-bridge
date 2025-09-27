@@ -29,20 +29,20 @@ if __name__ == "__main__":
     elif args.cli_respuesta:
         controller, presenter = compose_cli_respuesta()
         conversation = Conversation()
-        print("[CLI] Modo respuesta. Escribe un mensaje para simular recepción (escribe 'salir' para terminar):")
+        logger.info("[CLI] Modo respuesta. Escribe un mensaje para simular recepción (escribe 'salir' para terminar):")
         try:
             while True:
                 user_input = input("Usuario: ")
                 if user_input.strip().lower() in ("salir", "exit", "quit"):
-                    print("Saliendo del modo CLI respuesta.")
+                    logger.info("Saliendo del modo CLI respuesta.")
                     break
                 conversation.add_message("Usuario", user_input)
                 PROMPT = conversation.get_prompt()
                 response = controller.handle_prompt(PROMPT)
                 conversation.add_message("Bot", response)
-                print(presenter.present(response))
+                logger.info(presenter.present(response))
         except KeyboardInterrupt:
-            print("\nInterrupción detectada. Saliendo del modo CLI respuesta.")
+            logger.info("Interrupción detectada. Saliendo del modo CLI respuesta.")
         exit(0)
     elif args.twilio_respuesta:
         run_flask_webhook = compose_twilio_respuesta()
