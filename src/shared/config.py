@@ -16,7 +16,8 @@ def get_config():
         "WHATSAPP_FROM": os.getenv('TWILIO_WHATSAPP_FROM'),
         "CONTENT_SID": os.getenv('TWILIO_CONTENT_SID'),
         "CONTENT_VARIABLES": os.getenv('TWILIO_CONTENT_VARIABLES'),
-        "WHATSAPP_TO": os.getenv('TWILIO_WHATSAPP_TO')
+        "WHATSAPP_TO": os.getenv('TWILIO_WHATSAPP_TO'),
+        "GOOGLE_GEMINI_MODEL": os.getenv('GOOGLE_GEMINI_MODEL')
     }
 
     if not config["ACCOUNT_SID"] or not config["AUTH_TOKEN"]:
