@@ -31,11 +31,23 @@ if __name__ == "__main__":
         sender = CliMessageSender()
         gateway = CliGateway(sender)
     elif args.cli_respuesta:
-        # Modo CLI respuesta: simula recepción y respuesta
+        # Modo CLI respuesta: usa Gemini para generar la respuesta
+        from src.infrastructure.google_generativeai.gemini_service import GeminiService
+        from src.interface_adapter.gateways.gemini_gateway import GeminiGateway
+        from src.use_cases.generate_gemini_response_use_case import GenerateGeminiResponseUseCase
+        from src.interface_adapter.controller.gemini_controller import GeminiController
+        from src.interface_adapter.presenters.gemini_presenter import GeminiPresenter
+
+        gemini_service = GeminiService()
+        gemini_gateway = GeminiGateway(gemini_service)
+        use_case = GenerateGeminiResponseUseCase(gemini_gateway)
+        controller = GeminiController(use_case)
+        presenter = GeminiPresenter()
+
         print("[CLI] Modo respuesta. Escribe un mensaje para simular recepción:")
         user_input = input("Usuario: ")
-        SIMULATED_RESPONSE = f"Bot: Recibido tu mensaje '{user_input}'. Esta es una respuesta simulada."
-        print(SIMULATED_RESPONSE)
+        response = controller.handle_prompt(user_input)
+        print(presenter.present(response))
         exit(0)
     elif args.twilio_respuesta:
         # Modo Twilio respuesta: inicia webhook Flask
