@@ -2,7 +2,8 @@
 Path: src/infrastructure/flask/flask_webhook.py
 """
 
-from flask import Flask, request, Response
+import os
+from flask import Flask, request, Response, render_template_string
 
 from src.shared.logger import get_logger
 
@@ -26,7 +27,7 @@ twilio_presenter = TwilioPresenter()
 
 def run_flask_webhook(host="0.0.0.0", port=5000):
     "Inicia un servidor Flask para manejar webhooks de Twilio."
-    app = Flask(__name__)
+    app = Flask(__name__, static_folder=os.path.abspath("static"))
 
     @app.route('/webhook', methods=['POST'])
     def webhook():
@@ -45,7 +46,20 @@ def run_flask_webhook(host="0.0.0.0", port=5000):
 
     @app.route('/', methods=['GET'])
     def index():
-        return "Twilio Bot Flask API is running.", 200
+        # Renderiza una página HTML que muestra el QR
+        html = """
+        <!DOCTYPE html>
+        <html>
+        <head>
+            <title>Twilio Bot QR</title>
+        </head>
+        <body>
+            <h2>Escanea este QR para conectar tu WhatsApp</h2>
+            <img src="/static/qr.svg" alt="QR WhatsApp" style="width:300px;height:300px;">
+        </body>
+        </html>
+        """
+        return render_template_string(html), 200
 
     logger.info("[Twilio] Modo respuesta. Iniciando webhook Flask en http://%s:%s/webhook ...", host, port)
     app.run(host=host, port=port, debug=True)
