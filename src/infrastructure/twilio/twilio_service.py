@@ -1,5 +1,5 @@
 """
-Path: src/shared/infrastructure/twilio/twilio_service.py
+Path: src/infrastructure/twilio/twilio_service.py
 """
 
 import json
