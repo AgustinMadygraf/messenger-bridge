@@ -2,6 +2,8 @@
 Path: src/interface_adapter/controller/incoming_message_controller.py
 """
 
+from src.entities.message import Message
+
 
 class IncomingMessageController:
     "Controlador para manejar mensajes entrantes."
@@ -11,7 +13,9 @@ class IncomingMessageController:
 
     def handle(self, _from_number, user_message):
         "Procesa el mensaje entrante y retorna la respuesta generada."
-        self.conversation.add_message(user_message)
+        # Usar Message y estandarizar 'to'
+        self.conversation.add_message(Message(to="User", body=user_message))
         prompt = self.conversation.get_prompt()
         response = self.use_case.execute(prompt)
+        self.conversation.add_message(Message(to="Bot", body=response))
         return response

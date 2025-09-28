@@ -13,7 +13,7 @@ class GeminiController:
 
     def handle_user_message(self, user_message):
         "Agrega el mensaje del usuario, genera el prompt y retorna la respuesta del caso de uso."
-        user_msg = Message(to="Usuario", body=user_message)
+        user_msg = Message(to="User", body=user_message)
         self.conversation.add_message(user_msg)
         prompt = self.conversation.get_prompt()
         try:
