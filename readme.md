@@ -25,7 +25,7 @@ El sistema permite dos modos de operación:
     │   ├── config.py                # Gestión de configuración
     │   └── logger.py                # Servicios de logging
     └── use_cases/                   # Casos de uso de la aplicación
-        └── send_whatsapp_message_use_case.py
+        └── send_message_use_case.py
 ```
 
 ## Requisitos

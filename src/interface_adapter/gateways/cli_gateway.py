@@ -7,6 +7,6 @@ class CliGateway:
     def __init__(self, sender):
         self.sender = sender
 
-    def send_whatsapp_message(self, message, content_sid, content_variables):
+    def send_message(self, message, content_sid, content_variables):
         "Simula el envío de un mensaje de WhatsApp usando el sender inyectado."
-        return self.sender.send_whatsapp_message(message, content_sid, content_variables)
+        return self.sender.send_message(message, content_sid, content_variables)

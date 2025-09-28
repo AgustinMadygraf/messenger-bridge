@@ -8,7 +8,7 @@ from src.entities.message import Message
 class MessageSender(ABC):
     "Abstracción para enviar mensajes WhatsApp, soportando texto y archivos multimedia."
     @abstractmethod
-    def send_whatsapp_message(
+    def send_message(
         self,
         message: 'Message',
         content_sid: str,
@@ -48,10 +48,10 @@ class SendMessageUseCase:
         Returns:
             str: ID del mensaje enviado o None si hubo error.
         """
-        return self.message_sender.send_whatsapp_message(message, content_sid, content_variables)
+        return self.message_sender.send_message(message, content_sid, content_variables)
 
 # Mantener función para compatibilidad con código existente
-def send_whatsapp_message_use_case(gateway, message: Message, content_sid, content_variables):
+def send_message_use_case(gateway, message: Message, content_sid, content_variables):
     "Envía un mensaje WhatsApp usando el gateway. Deprecated: Use SendMessageUseCase instead."
     use_case = SendMessageUseCase(gateway)
     return use_case.execute(message, content_sid, content_variables)

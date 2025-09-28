@@ -17,7 +17,7 @@ class TwilioMessageSender(MessageSender):
         self.from_number = from_number
         self.logger = get_logger("twilio-bot.twilio_service")
 
-    def send_whatsapp_message(self, message, content_sid, content_variables):
+    def send_message(self, message, content_sid, content_variables):
         "Envía un mensaje WhatsApp usando Twilio."
         config = get_config()
         client = Client(config["ACCOUNT_SID"], config["AUTH_TOKEN"])

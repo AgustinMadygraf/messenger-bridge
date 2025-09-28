@@ -9,6 +9,8 @@ from src.shared.logger import get_logger
 from src.shared.config import get_config
 
 from src.interface_adapter.gateways.telegram_gateway import TelegramGateway
+from src.entities.message import Message
+from src.use_cases.send_message_use_case import SendMessageUseCase
 
 logger = get_logger(__name__)
 config = get_config()
@@ -38,9 +40,27 @@ async def start(update: Update, _context: ContextTypes.DEFAULT_TYPE):
     "Maneja el comando /start."
     await update.message.reply_text("¡Hola! Soy tu bot de Telegram.")
 
-async def echo(update: Update, _context: ContextTypes.DEFAULT_TYPE):
-    "Reenvía el mensaje recibido."
-    await update.message.reply_text(update.message.text)
+def make_echo_handler(send_message_use_case, gateway):
+    " Crea un handler que usa el caso de uso para responder mensajes."
+    async def echo(update: Update, _context: ContextTypes.DEFAULT_TYPE):
+        "Procesa el mensaje recibido usando el caso de uso y responde."
+        user_message = update.message.text
+        chat_id = update.message.chat_id
+
+        # Construir entidad Message
+        incoming_message = Message(to=chat_id, body=user_message)
+
+        # Ejecutar caso de uso (puedes pasar content_sid y content_variables vacíos si no se usan en Telegram)
+        response_text = send_message_use_case.execute(
+            incoming_message,
+            content_sid="",
+            content_variables={}
+        )
+
+        # Enviar respuesta usando el gateway
+        response_message = Message(to=chat_id, body=response_text)
+        await gateway.send_message(response_message)
+    return echo
 
 def main():
     "Configura e inicia el bot de Telegram."
@@ -51,9 +71,11 @@ def main():
 
     sender = TelegramSender(telegram_token)
     gateway = TelegramGateway(sender)
+    send_message_use_case = SendMessageUseCase(gateway)
 
     sender.add_command_handler("start", start)
-    gateway.add_message_handler(echo)
+    # Usar el handler con dependencias inyectadas
+    gateway.add_message_handler(make_echo_handler(send_message_use_case, gateway))
 
     logger.info("Iniciando bot de Telegram...")
     sender.run()

@@ -3,7 +3,7 @@ Path: src/interface_adapter/controller/whatsapp_message_controller.py
 """
 
 
-from src.use_cases.send_message_use_case import send_whatsapp_message_use_case
+from src.use_cases.send_message_use_case import send_message_use_case
 from src.entities.message import Message
 
 class MessageController:
@@ -25,4 +25,4 @@ class MessageController:
             media_url=media_url,
             media_type=media_type
         )
-        return send_whatsapp_message_use_case(self.gateway, message, content_sid, content_variables)
+        return send_message_use_case(self.gateway, message, content_sid, content_variables)
