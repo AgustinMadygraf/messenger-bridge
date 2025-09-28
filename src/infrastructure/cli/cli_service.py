@@ -15,7 +15,9 @@ def setup_cli_mode():
     from src.use_cases.generate_gemini_response_use_case import GenerateGeminiResponseUseCase
     from src.entities.conversation import Conversation
 
-    gemini_service = GeminiService()
+    gemini_service = GeminiService(
+        instructions_json_path="src/infrastructure/google_generativeai/system_instructions.json"
+    )
     gemini_gateway = GeminiGateway(gemini_service)
     use_case = GenerateGeminiResponseUseCase(gemini_gateway)
     conversation = Conversation()

@@ -19,7 +19,9 @@ from src.entities.conversation_manager import ConversationManager
 logger = get_logger("flask-webhook")
 
 conversation_manager = ConversationManager()
-gemini_service = GeminiService()
+gemini_service = GeminiService(
+    instructions_json_path="src/infrastructure/google_generativeai/system_instructions.json"
+)
 gemini_gateway = GeminiGateway(gemini_service)
 generate_gemini_use_case = GenerateGeminiResponseUseCase(gemini_gateway)
 gemini_presenter = GeminiPresenter()
