@@ -54,10 +54,32 @@ def run_flask_webhook(host="0.0.0.0", port=5000):
         history = conversation_manager.get_history(from_number)
         conversation = Conversation(conversation_id=from_number)
         for msg in history:
-            conversation.add_message(msg.get("sender", ""), msg.get("message", ""))
+            # Si el historial ya contiene Message, simplemente agrégalo
+            if isinstance(msg, Message):
+                conversation.add_message(msg)
+            # Si es dict, conviértelo a Message
+            elif isinstance(msg, dict):
+                conversation.add_message(
+                    Message(to=msg.get("sender", ""), body=msg.get("message", ""))
+                )
         # Guarda el mensaje recibido (texto y/o multimedia)
-        conversation.add_message("user", user_message)
-        conversation_manager.add_message(from_number, {"sender": "user", "message": user_message})
+        conversation.add_message(
+            Message(
+                to="user",
+                body=user_message,
+                media_url=media_url,
+                media_type=media_type
+            )
+        )
+        conversation_manager.add_message(
+            from_number,
+            Message(
+                to="user",
+                body=user_message,
+                media_url=media_url,
+                media_type=media_type
+            )
+        )
 
         # --- Construye entidad Message para texto y multimedia ---
         whatsapp_message = Message(
