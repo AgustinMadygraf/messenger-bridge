@@ -6,16 +6,14 @@ from src.entities.conversation_manager import ConversationManager
 from src.use_cases.generate_gemini_response_use_case import GenerateGeminiResponseUseCase
 
 class GenerateResponseWithMemoryUseCase:
-    """
-    Orquesta la generación de respuestas usando historial de conversación y modelo generativo.
-    """
+    "Orquesta la generación de respuestas usando historial de conversación y modelo generativo."
     def __init__(self, conversation_manager: ConversationManager, gemini_use_case: GenerateGeminiResponseUseCase, system_instructions: str = None):
         self.conversation_manager = conversation_manager
         self.gemini_use_case = gemini_use_case
         self.system_instructions = system_instructions
 
     def execute(self, conversation_id: str, sender: str, user_message: str) -> str:
-        # Actualiza el historial
+        " Genera una respuesta considerando el historial de la conversación."
         self.conversation_manager.add_message(conversation_id, {"sender": sender, "message": user_message})
         # Construye el prompt con historial
         history = self.conversation_manager.get_history(conversation_id)

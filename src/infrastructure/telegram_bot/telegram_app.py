@@ -2,22 +2,20 @@
 Path: src/infrastructure/telegram_bot/telegram.py
 """
 
+import os
 from telegram.ext import ApplicationBuilder, CommandHandler, MessageHandler, filters, ContextTypes
 from telegram import Update
 
 from src.shared.logger import get_logger
 from src.shared.config import get_config
 
+from src.infrastructure.google_generativeai.gemini_service import GeminiService
 from src.interface_adapter.gateways.telegram_gateway import TelegramGateway
 from src.interface_adapter.controller.telegram_message_controller import TelegramMessageController
 from src.interface_adapter.presenters.telegram_presenter import TelegramMessagePresenter
-
-from src.entities.conversation_manager import ConversationManager
 from src.use_cases.generate_gemini_response_use_case import GenerateGeminiResponseUseCase
-from src.infrastructure.google_generativeai.gemini_service import GeminiService
 from src.use_cases.generate_response_with_memory_use_case import GenerateResponseWithMemoryUseCase
-
-import os
+from src.entities.conversation_manager import ConversationManager
 
 logger = get_logger(__name__)
 config = get_config()
@@ -39,8 +37,8 @@ class TelegramSender:
         await self.app.bot.send_message(chat_id=chat_id, text=text)
 
     def add_message_handler(self, handler):
-        "Agrega un handler para mensajes entrantes."
-        self.app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, handler))
+        "Agrega un handler para mensajes entrantes de cualquier tipo."
+        self.app.add_handler(MessageHandler(filters.ALL, handler))  # <-- Cambia filters.TEXT por filters.ALL
 
     def add_command_handler(self, command, handler):
         "Agrega un handler para comandos específicos."
@@ -55,12 +53,39 @@ async def start(update: Update, _context: ContextTypes.DEFAULT_TYPE):
     await update.message.reply_text("¡Hola! Soy tu bot de Telegram.")
 
 def make_handler(controller, gateway):
-    "Crea un handler para responder a mensajes de texto usando memoria y Gemini."
+    "Crea un handler para responder a mensajes de texto y audios usando memoria y Gemini."
     async def handler(update: Update, _context: ContextTypes.DEFAULT_TYPE):
         chat_id = update.message.chat_id
-        user_message = update.message.text
-        chat_id, response_text = await controller.handle(chat_id, user_message)
-        await gateway.sender.send_message(chat_id, response_text)
+
+        # Procesa mensajes de texto
+        if update.message.text:
+            user_message = update.message.text
+            chat_id, response_text = await controller.handle(chat_id, user_message)
+            await gateway.sender.send_message(chat_id, response_text)
+            return
+
+        # Procesa mensajes de audio (voice)
+        if update.message.voice:
+            # Descarga el archivo de audio
+            file = await update.message.voice.get_file()
+            audio_file_path = f"temp_audio_{chat_id}.ogg"
+            await file.download_to_drive(audio_file_path)
+
+            # Aquí deberías integrar una API de transcripción (por ejemplo, Google Speech-to-Text)
+            # Por ahora, simula la transcripción
+            transcribed_text = "[Audio recibido: transcripción no implementada]"
+
+            chat_id, response_text = await controller.handle(chat_id, transcribed_text)
+            await gateway.sender.send_message(chat_id, response_text)
+            # Opcional: elimina el archivo temporal
+            try:
+                os.remove(audio_file_path)
+            except OSError as e:
+                logger.debug("No se pudo eliminar el archivo temporal: %s", e)
+            return
+
+        # Procesa otros tipos de mensajes si lo deseas
+        await gateway.sender.send_message(chat_id, "Sólo se aceptan mensajes de texto o audio.")
     return handler
 
 def main():
