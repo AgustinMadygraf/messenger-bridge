@@ -93,8 +93,8 @@ def run_flask_webhook(host="0.0.0.0", port=5000):
         incoming_message_controller = IncomingMessageController(generate_gemini_use_case, conversation)
         # Modifica el controlador para aceptar Message si es necesario
         response_text = incoming_message_controller.handle(from_number, whatsapp_message)
-        formatted_response = gemini_presenter.present(response_text)
-        twiml = twilio_presenter.present(formatted_response)
+        bot_message = Message(to="Bot", body=response_text)
+        twiml = twilio_presenter.present(bot_message)
         logger.info("Respuesta TwiML generada: %s", twiml)
         return Response(twiml, mimetype='application/xml')
 

@@ -14,6 +14,7 @@ def setup_cli_mode():
     from src.interface_adapter.presenters.gemini_presenter import GeminiPresenter
     from src.use_cases.generate_gemini_response_use_case import GenerateGeminiResponseUseCase
     from src.entities.conversation import Conversation
+    from src.entities.message import Message
 
     gemini_service = GeminiService(
         instructions_json_path="src/infrastructure/google_generativeai/system_instructions.json"
@@ -32,9 +33,8 @@ def setup_cli_mode():
                 logger.info("Saliendo del modo CLI respuesta.")
                 break
 
-            # Add message and get response
             response = controller.handle_user_message(user_input)
-            formatted_response = presenter.present(response)
+            formatted_response = presenter.present(Message(to="Bot", body=response))
             print(formatted_response)
 
     except KeyboardInterrupt:

@@ -2,6 +2,8 @@
 Path: src/interface_adapter/controller/telegram_message_controller.py
 """
 
+from src.entities.message import Message
+
 class TelegramMessageController:
     "Controlador para manejar mensajes entrantes de Telegram."
     def __init__(self, use_case, presenter):
@@ -10,10 +12,11 @@ class TelegramMessageController:
 
     async def handle(self, chat_id, text):
         "Maneja un mensaje entrante de Telegram usando memoria conversacional y Gemini."
-        # El use_case ahora espera: conversation_id, sender, user_message
         response = self.use_case.execute(
             conversation_id=str(chat_id),
             sender="User",
             user_message=text
         )
-        return self.presenter.present(chat_id, response)
+        # Envolver la respuesta en un objeto Message
+        message = Message(to="Bot", body=response)
+        return chat_id, self.presenter.present(message)

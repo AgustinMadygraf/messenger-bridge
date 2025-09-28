@@ -10,13 +10,13 @@ from src.shared.logger import get_logger
 from src.shared.config import get_config
 
 from src.infrastructure.google_generativeai.gemini_service import GeminiService
+from src.infrastructure.google_cloud_speech.speech_service import SpeechService
 from src.interface_adapter.gateways.telegram_gateway import TelegramGateway
 from src.interface_adapter.controller.telegram_message_controller import TelegramMessageController
 from src.interface_adapter.presenters.telegram_presenter import TelegramMessagePresenter
 from src.use_cases.generate_gemini_response_use_case import GenerateGeminiResponseUseCase
 from src.use_cases.generate_response_with_memory_use_case import GenerateResponseWithMemoryUseCase
 from src.entities.conversation_manager import ConversationManager
-from src.infrastructure.google_cloud_speech.speech_service import SpeechService
 
 logger = get_logger(__name__)
 config = get_config()
