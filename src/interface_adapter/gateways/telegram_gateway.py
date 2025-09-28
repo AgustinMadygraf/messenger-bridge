@@ -10,9 +10,7 @@ class TelegramGateway:
         self.sender = sender
 
     def send_message(self, message: Message, _content_sid: str = "", _content_variables: dict = None):
-        """
-        Devuelve el texto a enviar. El envío real lo hace el handler.
-        """
+        " Devuelve el texto a enviar. El envío real lo hace el handler."
         if message.is_media():
             return f"{message.body}\n[Multimedia: {message.media_url}]"
         else:
