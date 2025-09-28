@@ -3,16 +3,13 @@ Path: src/infrastructure/google_generativeai/gemini_service.py
 """
 
 
-import os
 import google.generativeai as genai
-import dotenv
 
 from src.shared.logger import get_logger
 from src.shared.config import get_config
 
 from src.entities.gemini_responder import GeminiResponder
 
-dotenv.load_dotenv()
 logger = get_logger("gemini-service")
 
 
@@ -21,7 +18,7 @@ class GeminiService(GeminiResponder):
     def __init__(self, api_key=None):
         try:
             config = get_config()
-            self.api_key = api_key or os.getenv("GOOGLE_GEMINI_API_KEY") or config.get("GOOGLE_GEMINI_API_KEY")
+            self.api_key = api_key or config.get("GOOGLE_GEMINI_API_KEY")
             if not self.api_key:
                 logger.error("Falta GOOGLE_GEMINI_API_KEY en variables de entorno.")
                 raise ValueError("Falta GOOGLE_GEMINI_API_KEY en variables de entorno.")
