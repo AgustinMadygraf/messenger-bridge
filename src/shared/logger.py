@@ -3,6 +3,7 @@ Path: src/shared/logger.py
 """
 
 import logging
+from src.shared.config import get_config
 
 class FlaskStyleFormatter(logging.Formatter):
     "Formatter que imita el estilo de logging de Flask con colores."
@@ -23,10 +24,12 @@ class FlaskStyleFormatter(logging.Formatter):
 
 def get_logger(name="twilio-bot"):
     "Configura y devuelve un logger con formato estilo Flask."
+    config = get_config()
+    log_level = config.get("LOG_LEVEL", "DEBUG").upper()
     logger = logging.getLogger(name)
     if not logger.handlers:
         handler = logging.StreamHandler()
         handler.setFormatter(FlaskStyleFormatter())
         logger.addHandler(handler)
-        logger.setLevel(logging.DEBUG)
+        logger.setLevel(getattr(logging, log_level, logging.DEBUG))
     return logger

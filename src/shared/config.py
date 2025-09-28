@@ -18,7 +18,8 @@ def get_config():
         "CONTENT_VARIABLES": os.getenv('TWILIO_CONTENT_VARIABLES'),
         "WHATSAPP_TO": os.getenv('TWILIO_WHATSAPP_TO'),
         "GOOGLE_GEMINI_MODEL": os.getenv('GOOGLE_GEMINI_MODEL'),
-        "GOOGLE_GEMINI_API_KEY": os.getenv('GOOGLE_GEMINI_API_KEY')
+        "GOOGLE_GEMINI_API_KEY": os.getenv('GOOGLE_GEMINI_API_KEY'),
+        "LOG_LEVEL": os.getenv('LOG_LEVEL', 'DEBUG')
     }
 
     if not config["ACCOUNT_SID"] or not config["AUTH_TOKEN"]:
