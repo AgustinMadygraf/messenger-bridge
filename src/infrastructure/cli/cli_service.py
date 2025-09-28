@@ -6,7 +6,7 @@ from src.shared.logger import get_logger
 
 logger = get_logger("twilio-bot.cli")
 
-def setup_cli_mode():
+def run_cli_mode():
     "Configures and returns components for CLI interaction mode."
     from src.infrastructure.google_generativeai.gemini_service import GeminiService
     from src.interface_adapter.gateways.gemini_gateway import GeminiGateway

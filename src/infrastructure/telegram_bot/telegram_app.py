@@ -93,7 +93,7 @@ def make_handler(controller, gateway):
         await gateway.sender.send_message(chat_id, "Sólo se aceptan mensajes de texto o audio.")
     return handler
 
-def main():
+def run_telegram_mode():
     "Configura e inicia el bot de Telegram con memoria y Gemini."
     telegram_token = config.get("TELEGRAM_API_KEY")
     if not telegram_token:
