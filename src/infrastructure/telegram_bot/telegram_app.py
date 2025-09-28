@@ -16,6 +16,7 @@ from src.interface_adapter.presenters.telegram_presenter import TelegramMessageP
 from src.use_cases.generate_gemini_response_use_case import GenerateGeminiResponseUseCase
 from src.use_cases.generate_response_with_memory_use_case import GenerateResponseWithMemoryUseCase
 from src.entities.conversation_manager import ConversationManager
+from src.infrastructure.google_cloud_speech.speech_service import SpeechService
 
 logger = get_logger(__name__)
 config = get_config()
@@ -71,9 +72,13 @@ def make_handler(controller, gateway):
             audio_file_path = f"temp_audio_{chat_id}.ogg"
             await file.download_to_drive(audio_file_path)
 
-            # Aquí deberías integrar una API de transcripción (por ejemplo, Google Speech-to-Text)
-            # Por ahora, simula la transcripción
-            transcribed_text = "[Audio recibido: transcripción no implementada]"
+            # Transcribe el audio usando SpeechService
+            try:
+                speech_service = SpeechService()
+                transcribed_text = speech_service.transcribe(audio_file_path)
+            except (FileNotFoundError, ValueError, OSError) as e:
+                logger.error("Error en la transcripción de audio: %s", e)
+                transcribed_text = "[No se pudo transcribir el audio]"
 
             chat_id, response_text = await controller.handle(chat_id, transcribed_text)
             await gateway.sender.send_message(chat_id, response_text)
