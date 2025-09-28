@@ -4,6 +4,7 @@ Path: src/use_cases/generate_response_with_memory_use_case.py
 
 from src.entities.conversation_manager import ConversationManager
 from src.use_cases.generate_gemini_response_use_case import GenerateGeminiResponseUseCase
+from src.entities.message import Message
 
 class GenerateResponseWithMemoryUseCase:
     "Orquesta la generación de respuestas usando historial de conversación y modelo generativo."
@@ -13,13 +14,14 @@ class GenerateResponseWithMemoryUseCase:
         self.system_instructions = system_instructions
 
     def execute(self, conversation_id: str, sender: str, user_message: str) -> str:
-        " Genera una respuesta considerando el historial de la conversación."
-        self.conversation_manager.add_message(conversation_id, {"sender": sender, "message": user_message})
+        "Genera una respuesta considerando el historial de la conversación."
+        # Usar Message en vez de dict
+        self.conversation_manager.add_message(conversation_id, Message(to=sender, body=user_message))
         # Construye el prompt con historial
         history = self.conversation_manager.get_history(conversation_id)
-        prompt = "\n".join(f"{m['sender']}: {m['message']}" for m in history)
+        prompt = "\n".join(f"{msg.to}: {msg.body}" for msg in history)
         # Genera la respuesta con Gemini
         response = self.gemini_use_case.execute(prompt, system_instructions=self.system_instructions)
         # Agrega la respuesta del bot al historial
-        self.conversation_manager.add_message(conversation_id, {"sender": "Bot", "message": response})
+        self.conversation_manager.add_message(conversation_id, Message(to="Bot", body=response))
         return response
