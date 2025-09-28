@@ -31,13 +31,21 @@ class GeminiService(GeminiResponder):
             logger.error("Error al inicializar GeminiService: %s", e)
             raise
 
-    def get_response(self, prompt):
-        "Genera una respuesta usando el modelo Gemini."
+    def get_response(self, prompt, system_instructions=None):
+        "Genera una respuesta usando el modelo Gemini, opcionalmente con instrucciones de sistema."
         try:
             config = get_config()
             model_name = config.get("GOOGLE_GEMINI_MODEL", "models/gemini-2.5-flash")
             model = genai.GenerativeModel(model_name)
-            response = model.generate_content(prompt)
+            # Si hay instrucciones de sistema, las agregamos al prompt como contexto
+            if system_instructions:
+                content = [
+                    {"role": "system", "parts": [system_instructions]},
+                    {"role": "user", "parts": [prompt]}
+                ]
+                response = model.generate_content(content)
+            else:
+                response = model.generate_content(prompt)
             logger.info("Respuesta generada correctamente.")
             return response.text if hasattr(response, "text") else str(response)
         except ValueError as e:

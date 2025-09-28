@@ -12,8 +12,11 @@ class GenerateGeminiResponseUseCase:
             raise TypeError("El responder debe implementar la interfaz GeminiResponder")
         self.responder = responder
 
-    def execute(self, prompt):
-        "Ejecuta el caso de uso: recibe un prompt y retorna la respuesta generada por Gemini."
+    def execute(self, prompt, system_instructions=None):
+        """
+        Ejecuta el caso de uso: recibe un prompt y opcionalmente instrucciones de sistema,
+        retorna la respuesta generada por Gemini.
+        """
         if not prompt or not isinstance(prompt, str):
             raise ValueError("El prompt debe ser un string no vacío.")
-        return self.responder.get_response(prompt)
+        return self.responder.get_response(prompt, system_instructions=system_instructions)

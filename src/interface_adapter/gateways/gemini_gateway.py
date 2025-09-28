@@ -9,5 +9,5 @@ class GeminiGateway(GeminiResponder):
     def __init__(self, gemini_service):
         self.gemini_service = gemini_service
 
-    def get_response(self, prompt):
-        return self.gemini_service.get_response(prompt)
+    def get_response(self, prompt, system_instructions=None):
+        return self.gemini_service.get_response(prompt, system_instructions=system_instructions)
