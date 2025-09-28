@@ -15,6 +15,7 @@ from src.interface_adapter.presenters.gemini_presenter import GeminiPresenter
 from src.use_cases.generate_gemini_response_use_case import GenerateGeminiResponseUseCase
 from src.entities.conversation import Conversation
 from src.entities.conversation_manager import ConversationManager
+from src.entities.whatsapp_message import WhatsappMessage
 
 logger = get_logger("flask-webhook")
 
@@ -40,18 +41,36 @@ def run_flask_webhook(host="0.0.0.0", port=5000):
         logger.debug("Datos recibidos: %s", data)
         logger.info("[Twilio] Mensaje recibido de %s: %s", from_number, user_message)
 
+        # --- Manejo de archivos multimedia ---
+        num_media = int(data.get('NumMedia', '0'))
+        media_url = None
+        media_type = None
+        if num_media > 0:
+            media_url = data.get('MediaUrl0')
+            media_type = data.get('MediaContentType0')
+            logger.info("[Twilio] Archivo multimedia recibido: %s (%s)", media_url, media_type)
+
         # --- GESTIÓN DE SESIÓN POR REMITENTE ---
-        # Obtiene o crea la conversación para el remitente
         history = conversation_manager.get_history(from_number)
         conversation = Conversation(conversation_id=from_number)
         for msg in history:
             conversation.add_message(msg.get("sender", ""), msg.get("message", ""))
+        # Guarda el mensaje recibido (texto y/o multimedia)
         conversation.add_message("user", user_message)
         conversation_manager.add_message(from_number, {"sender": "user", "message": user_message})
 
+        # --- Construye entidad WhatsappMessage para texto y multimedia ---
+        whatsapp_message = WhatsappMessage(
+            to=from_number,
+            body=user_message,
+            media_url=media_url,
+            media_type=media_type
+        )
+
         # Usa la conversación específica en el controlador
         incoming_message_controller = IncomingMessageController(generate_gemini_use_case, conversation)
-        response_text = incoming_message_controller.handle(from_number, user_message)
+        # Modifica el controlador para aceptar WhatsappMessage si es necesario
+        response_text = incoming_message_controller.handle(from_number, whatsapp_message)
         formatted_response = gemini_presenter.present(response_text)
         twiml = twilio_presenter.present(formatted_response)
         logger.info("Respuesta TwiML generada: %s", twiml)
