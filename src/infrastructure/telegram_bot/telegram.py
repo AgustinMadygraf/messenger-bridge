@@ -43,23 +43,18 @@ async def start(update: Update, _context: ContextTypes.DEFAULT_TYPE):
 def make_echo_handler(send_message_use_case, gateway):
     " Crea un handler que usa el caso de uso para responder mensajes."
     async def echo(update: Update, _context: ContextTypes.DEFAULT_TYPE):
-        "Procesa el mensaje recibido usando el caso de uso y responde."
         user_message = update.message.text
         chat_id = update.message.chat_id
 
-        # Construir entidad Message
         incoming_message = Message(to=chat_id, body=user_message)
-
-        # Ejecutar caso de uso (puedes pasar content_sid y content_variables vacíos si no se usan en Telegram)
         response_text = send_message_use_case.execute(
             incoming_message,
             content_sid="",
             content_variables={}
         )
 
-        # Enviar respuesta usando el gateway
-        response_message = Message(to=chat_id, body=response_text)
-        await gateway.send_message(response_message)
+        # Aquí envías el texto, no la coroutine
+        await gateway.sender.send_message(chat_id, response_text)
     return echo
 
 def main():

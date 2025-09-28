@@ -29,10 +29,10 @@ class MessageSender(ABC):
 
 class SendMessageUseCase:
     "Caso de uso para enviar mensajes de WhatsApp, soportando multimedia."
-    
+
     def __init__(self, message_sender: MessageSender):
         self.message_sender = message_sender
-        
+
     def execute(
         self,
         message: Message,
