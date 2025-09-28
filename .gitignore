@@ -2,3 +2,4 @@ venv/
 .env
 __pycache__/
 src/infrastructure/google_generativeai/system_instructions.json
+src/infrastructure/google_cloud_speech/gen-lang-client-0649820717-7033e6770bb6.json
