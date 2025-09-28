@@ -3,10 +3,10 @@ Path: src/interface_adapter/controller/whatsapp_message_controller.py
 """
 
 
-from src.use_cases.send_whatsapp_message_use_case import send_whatsapp_message_use_case
-from src.entities.whatsapp_message import WhatsappMessage
+from src.use_cases.send_message_use_case import send_whatsapp_message_use_case
+from src.entities.message import Message
 
-class WhatsappMessageController:
+class MessageController:
     "Controlador para el envío de mensajes WhatsApp usando arquitectura limpia."
     def __init__(self, gateway):
         self.gateway = gateway
@@ -19,7 +19,7 @@ class WhatsappMessageController:
         message_body = content_variables.get('body', '')
         media_url = content_variables.get('media_url')
         media_type = content_variables.get('media_type')
-        message = WhatsappMessage(
+        message = Message(
             to=to,
             body=message_body,
             media_url=media_url,

@@ -1,8 +1,8 @@
 """
-Path: src/entities/whatsapp_message.py
+Path: src/entities/message.py
 """
 
-class WhatsappMessage:
+class Message:
     "Entidad que representa un mensaje de WhatsApp, soportando texto y archivos multimedia."
     def __init__(
         self,
@@ -22,6 +22,6 @@ class WhatsappMessage:
 
     def __repr__(self):
         return (
-            f"WhatsappMessage(to={self.to!r}, body={self.body!r}, "
+            f"Message(to={self.to!r}, body={self.body!r}, "
             f"media_url={self.media_url!r}, media_type={self.media_type!r})"
         )

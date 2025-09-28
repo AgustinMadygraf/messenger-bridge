@@ -85,7 +85,7 @@ Por ejemplo:
 
 ## Arquitectura
 Este proyecto implementa una arquitectura limpia (Clean Architecture) con las siguientes capas:
-- **Entidades**: Objetos de negocio (WhatsappMessage)
+- **Entidades**: Objetos de negocio (Message)
 - **Casos de uso**: Lógica de aplicación independiente de infraestructura
 - **Adaptadores**: Conversión entre capas externas y casos de uso
 - **Infraestructura**: Implementaciones concretas (API de Twilio)

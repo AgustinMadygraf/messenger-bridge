@@ -9,7 +9,7 @@ from twilio.base.exceptions import TwilioRestException
 from src.shared.config import get_config
 from src.shared.logger import get_logger
 
-from src.use_cases.send_whatsapp_message_use_case import MessageSender
+from src.use_cases.send_message_use_case import MessageSender
 
 class TwilioMessageSender(MessageSender):
     " Implementación de MessageSender usando Twilio. "

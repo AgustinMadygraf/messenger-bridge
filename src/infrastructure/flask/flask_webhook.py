@@ -15,7 +15,7 @@ from src.interface_adapter.presenters.gemini_presenter import GeminiPresenter
 from src.use_cases.generate_gemini_response_use_case import GenerateGeminiResponseUseCase
 from src.entities.conversation import Conversation
 from src.entities.conversation_manager import ConversationManager
-from src.entities.whatsapp_message import WhatsappMessage
+from src.entities.message import Message
 
 logger = get_logger("flask-webhook")
 
@@ -59,8 +59,8 @@ def run_flask_webhook(host="0.0.0.0", port=5000):
         conversation.add_message("user", user_message)
         conversation_manager.add_message(from_number, {"sender": "user", "message": user_message})
 
-        # --- Construye entidad WhatsappMessage para texto y multimedia ---
-        whatsapp_message = WhatsappMessage(
+        # --- Construye entidad Message para texto y multimedia ---
+        whatsapp_message = Message(
             to=from_number,
             body=user_message,
             media_url=media_url,
@@ -69,7 +69,7 @@ def run_flask_webhook(host="0.0.0.0", port=5000):
 
         # Usa la conversación específica en el controlador
         incoming_message_controller = IncomingMessageController(generate_gemini_use_case, conversation)
-        # Modifica el controlador para aceptar WhatsappMessage si es necesario
+        # Modifica el controlador para aceptar Message si es necesario
         response_text = incoming_message_controller.handle(from_number, whatsapp_message)
         formatted_response = gemini_presenter.present(response_text)
         twiml = twilio_presenter.present(formatted_response)
