@@ -28,7 +28,10 @@ class GeminiService(GeminiResponder):
             if instructions_json_path:
                 logger.debug("Cargando instrucciones de sistema desde: %s", instructions_json_path)
                 self.system_instructions = self.load_system_instructions_from_json(instructions_json_path)
-                logger.debug("Instrucciones de sistema cargadas: %s", self.system_instructions)
+                if not self.system_instructions:
+                    logger.error("No se pudieron cargar las instrucciones de sistema. El bot funcionará sin ellas.")
+                else:
+                    logger.debug("Instrucciones de sistema cargadas: %s", self.system_instructions)
             else:
                 logger.debug("No se proporcionó ruta para instrucciones de sistema.")
         except Exception as e:

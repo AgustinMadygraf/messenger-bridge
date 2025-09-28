@@ -12,14 +12,22 @@ from src.interface_adapter.gateways.telegram_gateway import TelegramGateway
 from src.interface_adapter.controller.telegram_message_controller import TelegramMessageController
 from src.interface_adapter.presenters.telegram_presenter import TelegramMessagePresenter
 
-# NUEVO: imports para memoria y Gemini
 from src.entities.conversation_manager import ConversationManager
 from src.use_cases.generate_gemini_response_use_case import GenerateGeminiResponseUseCase
 from src.infrastructure.google_generativeai.gemini_service import GeminiService
 from src.use_cases.generate_response_with_memory_use_case import GenerateResponseWithMemoryUseCase
 
+import os
+
 logger = get_logger(__name__)
 config = get_config()
+
+SYSTEM_INSTRUCTIONS_PATH = os.path.join(
+    os.path.dirname(__file__),
+    "..",
+    "google_generativeai",
+    "system_instructions.json"
+)
 
 class TelegramSender:
     "Implementación concreta para enviar y manejar mensajes con Telegram."
@@ -66,13 +74,11 @@ def main():
     gateway = TelegramGateway(sender)
     presenter = TelegramMessagePresenter()
 
-    # NUEVO: inicialización de memoria y Gemini
     conversation_manager = ConversationManager()
-    gemini_service = GeminiService()
+    gemini_service = GeminiService(instructions_json_path=SYSTEM_INSTRUCTIONS_PATH)
     gemini_use_case = GenerateGeminiResponseUseCase(gemini_service)
-    # Puedes cargar instrucciones de sistema si lo deseas
-    system_instructions = None
-    use_case = GenerateResponseWithMemoryUseCase(conversation_manager, gemini_use_case, system_instructions)
+    # Las instrucciones ya están cargadas en gemini_service.system_instructions
+    use_case = GenerateResponseWithMemoryUseCase(conversation_manager, gemini_use_case, gemini_service.system_instructions)
 
     controller = TelegramMessageController(use_case, presenter)
 
