@@ -8,25 +8,52 @@ from telegram import Update
 from src.shared.logger import get_logger
 from src.shared.config import get_config
 
+from src.interface_adapter.gateways.telegram_gateway import TelegramGateway
+
 logger = get_logger(__name__)
 config = get_config()
 
+class TelegramSender:
+    "Implementación concreta para enviar y manejar mensajes con Telegram."
+    def __init__(self, token):
+        self.app = ApplicationBuilder().token(token).build()
+
+    async def send_message(self, chat_id, text):
+        "Envía un mensaje de texto a un chat específico."
+        await self.app.bot.send_message(chat_id=chat_id, text=text)
+
+    def add_message_handler(self, handler):
+        "Agrega un handler para mensajes entrantes."
+        self.app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, handler))
+
+    def add_command_handler(self, command, handler):
+        "Agrega un handler para comandos específicos."
+        self.app.add_handler(CommandHandler(command, handler))
+
+    def run(self):
+        "Inicia el bot de Telegram."
+        self.app.run_polling()
+
 async def start(update: Update, _context: ContextTypes.DEFAULT_TYPE):
-    "Responde al comando /start"
+    "Maneja el comando /start."
     await update.message.reply_text("¡Hola! Soy tu bot de Telegram.")
 
 async def echo(update: Update, _context: ContextTypes.DEFAULT_TYPE):
-    "Reenvía los mensajes de texto que recibe"
+    "Reenvía el mensaje recibido."
     await update.message.reply_text(update.message.text)
 
 def main():
-    "Configura y ejecuta el bot de Telegram"
+    "Configura e inicia el bot de Telegram."
     telegram_token = config.get("TELEGRAM_API_KEY")
     if not telegram_token:
         logger.error("No se encontró el token de Telegram en la configuración.")
-        raise ValueError("Telegram bot token not set in environment variables.")
-    app = ApplicationBuilder().token(telegram_token).build()
-    app.add_handler(CommandHandler("start", start))
-    app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, echo))
+        raise ValueError("Telegram bot token not set en environment variables.")
+
+    sender = TelegramSender(telegram_token)
+    gateway = TelegramGateway(sender)
+
+    sender.add_command_handler("start", start)
+    gateway.add_message_handler(echo)
+
     logger.info("Iniciando bot de Telegram...")
-    app.run_polling()
+    sender.run()
