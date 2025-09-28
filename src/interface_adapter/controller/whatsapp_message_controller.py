@@ -12,7 +12,17 @@ class WhatsappMessageController:
         self.gateway = gateway
 
     def send_message(self, content_sid, content_variables, to):
-        "Orquesta el envío de mensaje usando el caso de uso y el gateway inyectado."
+        """
+        Orquesta el envío de mensaje usando el caso de uso y el gateway inyectado.
+        Ahora soporta mensajes multimedia si se proporcionan 'media_url' y 'media_type' en content_variables.
+        """
         message_body = content_variables.get('body', '')
-        message = WhatsappMessage(to=to, body=message_body)
+        media_url = content_variables.get('media_url')
+        media_type = content_variables.get('media_type')
+        message = WhatsappMessage(
+            to=to,
+            body=message_body,
+            media_url=media_url,
+            media_type=media_type
+        )
         return send_whatsapp_message_use_case(self.gateway, message, content_sid, content_variables)
