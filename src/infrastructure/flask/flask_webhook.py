@@ -14,14 +14,14 @@ from src.interface_adapter.presenters.twilio_presenter import TwilioPresenter
 from src.interface_adapter.presenters.gemini_presenter import GeminiPresenter
 from src.use_cases.generate_gemini_response_use_case import GenerateGeminiResponseUseCase
 from src.entities.conversation import Conversation
+from src.entities.conversation_manager import ConversationManager
 
 logger = get_logger("flask-webhook")
 
-conversation = Conversation()
+conversation_manager = ConversationManager()
 gemini_service = GeminiService()
 gemini_gateway = GeminiGateway(gemini_service)
 generate_gemini_use_case = GenerateGeminiResponseUseCase(gemini_gateway)
-incoming_message_controller = IncomingMessageController(generate_gemini_use_case, conversation)
 gemini_presenter = GeminiPresenter()
 twilio_presenter = TwilioPresenter()
 
@@ -38,6 +38,17 @@ def run_flask_webhook(host="0.0.0.0", port=5000):
         logger.debug("Datos recibidos: %s", data)
         logger.info("[Twilio] Mensaje recibido de %s: %s", from_number, user_message)
 
+        # --- GESTIÓN DE SESIÓN POR REMITENTE ---
+        # Obtiene o crea la conversación para el remitente
+        history = conversation_manager.get_history(from_number)
+        conversation = Conversation(conversation_id=from_number)
+        for msg in history:
+            conversation.add_message(msg.get("sender", ""), msg.get("message", ""))
+        conversation.add_message("user", user_message)
+        conversation_manager.add_message(from_number, {"sender": "user", "message": user_message})
+
+        # Usa la conversación específica en el controlador
+        incoming_message_controller = IncomingMessageController(generate_gemini_use_case, conversation)
         response_text = incoming_message_controller.handle(from_number, user_message)
         formatted_response = gemini_presenter.present(response_text)
         twiml = twilio_presenter.present(formatted_response)

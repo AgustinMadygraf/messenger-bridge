@@ -1,70 +1,43 @@
 """
 Path: run.py
+Main entry point for the Twilio bot application.
+Supports two modes: CLI for testing and Twilio webhook for production.
 """
 
 import argparse
-import json
+import sys
 from src.shared.logger import get_logger
-from src.composer_root import (
-    compose_twilio_plantilla,
-    compose_cli_plantilla,
-    compose_cli_respuesta,
-    compose_twilio_respuesta
-)
-from src.entities.conversation import Conversation
 
-if __name__ == "__main__":
-    logger = get_logger("twilio-bot.run")
-    parser = argparse.ArgumentParser(description="Enviar mensaje WhatsApp por Twilio o CLI (plantilla)")
-    parser.add_argument('--twilio-plantilla', action='store_true', help='Usar Twilio para enviar el mensaje con plantilla')
-    parser.add_argument('--cli-plantilla', action='store_true', help='Simular envío de mensaje por CLI con plantilla')
-    parser.add_argument('--cli-respuesta', action='store_true', help='Simular recepción y respuesta de mensajes por CLI')
-    parser.add_argument('--twilio-respuesta', action='store_true', help='Recibir y responder mensajes reales por Twilio (webhook)')
+logger = get_logger("twilio-bot.run")
+
+def run_cli_mode():
+    "Runs the application in CLI mode for testing conversations."
+    from src.infrastructure.cli.cli_service import setup_cli_mode
+    logger.info("[CLI] Iniciando modo respuesta...")
+    setup_cli_mode()
+
+def run_twilio_mode():
+    "Runs the application in Twilio webhook mode."
+    from src.infrastructure.flask.flask_webhook import run_flask_webhook
+    logger.info("[Twilio] Iniciando modo webhook...")
+    run_flask_webhook()
+
+def main():
+    "Main entry point for the application."
+    parser = argparse.ArgumentParser(description="Enviar mensaje WhatsApp por Twilio o CLI")
+    parser.add_argument('--cli', action='store_true', help='Simular recepción y respuesta de mensajes por CLI')
+    parser.add_argument('--twilio', action='store_true', help='Recibir y responder mensajes reales por Twilio (webhook)')
     args = parser.parse_args()
 
-    if args.twilio_plantilla:
-        controller, presenter, config = compose_twilio_plantilla()
-    elif args.cli_plantilla:
-        controller, presenter, config = compose_cli_plantilla()
-    elif args.cli_respuesta:
-        controller, presenter = compose_cli_respuesta()
-        conversation = Conversation()
-        logger.info("[CLI] Modo respuesta. Escribe un mensaje para simular recepción (escribe 'salir' para terminar):")
-        try:
-            while True:
-                user_input = input("Usuario: ")
-                if user_input.strip().lower() in ("salir", "exit", "quit"):
-                    logger.info("Saliendo del modo CLI respuesta.")
-                    break
-                conversation.add_message("Usuario", user_input)
-                PROMPT = conversation.get_prompt()
-                response = controller.handle_prompt(PROMPT)
-                conversation.add_message("Bot", response)
-                logger.info(presenter.present(response))
-        except KeyboardInterrupt:
-            logger.info("Interrupción detectada. Saliendo del modo CLI respuesta.")
-        exit(0)
-    elif args.twilio_respuesta:
-        run_flask_webhook = compose_twilio_respuesta()
-        run_flask_webhook()
-        exit(0)
+    # Check if a valid mode was specified
+    if args.cli:
+        run_cli_mode()
+    elif args.twilio:
+        run_twilio_mode()
     else:
-        logger.error("Debe especificar --twilio-plantilla, --cli-plantilla, --cli-respuesta o --twilio-respuesta")
-        exit(1)
+        logger.error("Debe especificar --twilio o --cli")
+        parser.print_help()
+        sys.exit(1)
 
-    # Solo para los modos plantilla
-    if args.twilio_plantilla or args.cli_plantilla:
-        content_variables = config["CONTENT_VARIABLES"]
-        if isinstance(content_variables, str):
-            try:
-                content_variables = json.loads(content_variables)
-            except json.JSONDecodeError:
-                logger.warning("CONTENT_VARIABLES no es JSON válido, usando como body")
-                content_variables = {"body": content_variables}
-        logger.debug("content_variables antes de enviar al controlador: %s (tipo: %s)", content_variables, type(content_variables))
-        result = controller.send_message(
-            content_sid=config["CONTENT_SID"],
-            content_variables=content_variables,
-            to=config["WHATSAPP_TO"]
-        )
-        logger.info(presenter.present(result))
+if __name__ == "__main__":
+    main()
