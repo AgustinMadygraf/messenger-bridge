@@ -9,8 +9,9 @@ from src.shared.logger import get_logger
 from src.shared.config import get_config
 
 from src.interface_adapter.gateways.telegram_gateway import TelegramGateway
-from src.entities.message import Message
 from src.use_cases.send_message_use_case import SendMessageUseCase
+from src.interface_adapter.controller.telegram_message_controller import TelegramMessageController
+from src.interface_adapter.presenters.telegram_presenter import TelegramMessagePresenter
 
 logger = get_logger(__name__)
 config = get_config()
@@ -40,20 +41,14 @@ async def start(update: Update, _context: ContextTypes.DEFAULT_TYPE):
     "Maneja el comando /start."
     await update.message.reply_text("¡Hola! Soy tu bot de Telegram.")
 
-def make_echo_handler(send_message_use_case, gateway):
-    " Crea un handler que usa el caso de uso para responder mensajes."
+def make_echo_handler(controller, gateway):
+    "Crea un handler para responder a mensajes de texto."
     async def echo(update: Update, _context: ContextTypes.DEFAULT_TYPE):
-        user_message = update.message.text
         chat_id = update.message.chat_id
+        user_message = update.message.text
 
-        incoming_message = Message(to=chat_id, body=user_message)
-        response_text = send_message_use_case.execute(
-            incoming_message,
-            content_sid="",
-            content_variables={}
-        )
-
-        # Aquí envías el texto, no la coroutine
+        # Usa el controller para manejar el mensaje
+        chat_id, response_text = await controller.handle(chat_id, user_message)
         await gateway.sender.send_message(chat_id, response_text)
     return echo
 
@@ -67,10 +62,11 @@ def main():
     sender = TelegramSender(telegram_token)
     gateway = TelegramGateway(sender)
     send_message_use_case = SendMessageUseCase(gateway)
+    presenter = TelegramMessagePresenter()
+    controller = TelegramMessageController(send_message_use_case, presenter)
 
     sender.add_command_handler("start", start)
-    # Usar el handler con dependencias inyectadas
-    gateway.add_message_handler(make_echo_handler(send_message_use_case, gateway))
+    gateway.add_message_handler(make_echo_handler(controller, gateway))
 
     logger.info("Iniciando bot de Telegram...")
     sender.run()
