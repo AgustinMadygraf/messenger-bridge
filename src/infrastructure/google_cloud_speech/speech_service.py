@@ -11,7 +11,7 @@ from src.shared.logger import get_logger
 from src.shared.config import get_config
 
 from src.use_cases.transcribe_audio_use_case import SpeechToTextGateway
-from src.domain.entities.transcription import Transcription
+from src.entities.transcription import Transcription
 
 logger = get_logger("speech-service")
 

@@ -2,7 +2,7 @@
 Path: src/use_cases/transcribe_audio_use_case.py
 """
 
-from src.domain.entities.transcription import Transcription
+from src.entities.transcription import Transcription
 
 class SpeechToTextGateway:
     "Interfaz para servicios de transcripción de audio a texto."

@@ -3,7 +3,7 @@ Path: src/interface_adapter/presenters/transcription_presenter.py
 Presentador para formatear la respuesta de transcripción.
 """
 
-from src.domain.entities.transcription import Transcription
+from src.entities.transcription import Transcription
 
 class TranscriptionPresenter:
     "Presentador para la salida de transcripción."
