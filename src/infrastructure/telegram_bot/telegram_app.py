@@ -10,7 +10,6 @@ from src.shared.logger import get_logger
 from src.shared.config import get_config
 
 from src.infrastructure.google_generativeai.gemini_service import GeminiService
-from src.infrastructure.google_cloud_speech.speech_service import SpeechService
 from src.interface_adapter.gateways.telegram_gateway import TelegramGateway
 from src.interface_adapter.controller.telegram_message_controller import TelegramMessageController
 from src.interface_adapter.presenters.telegram_presenter import TelegramMessagePresenter
@@ -67,26 +66,8 @@ def make_handler(controller, gateway):
 
         # Procesa mensajes de audio (voice)
         if update.message.voice:
-            # Descarga el archivo de audio
-            file = await update.message.voice.get_file()
-            audio_file_path = f"temp_audio_{chat_id}.ogg"
-            await file.download_to_drive(audio_file_path)
-
-            # Transcribe el audio usando SpeechService
-            try:
-                speech_service = SpeechService()
-                transcribed_text = speech_service.transcribe(audio_file_path)
-            except (FileNotFoundError, ValueError, OSError) as e:
-                logger.error("Error en la transcripción de audio: %s", e)
-                transcribed_text = "[No se pudo transcribir el audio]"
-
-            chat_id, response_text = await controller.handle(chat_id, transcribed_text)
-            await gateway.sender.send_message(chat_id, response_text)
-            # Opcional: elimina el archivo temporal
-            try:
-                os.remove(audio_file_path)
-            except OSError as e:
-                logger.debug("No se pudo eliminar el archivo temporal: %s", e)
+            # Informa al usuario que los mensajes de voz no son compatibles
+            await gateway.sender.send_message(chat_id, "Lo siento, actualmente no puedo procesar mensajes de voz.")
             return
 
         # Procesa otros tipos de mensajes si lo deseas
