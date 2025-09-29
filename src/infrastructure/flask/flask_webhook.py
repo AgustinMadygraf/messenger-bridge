@@ -116,4 +116,4 @@ def run_flask_webhook(host="0.0.0.0", port=5000):
         return render_template_string(html), 200
 
     logger.info("[Twilio] Modo respuesta. Iniciando webhook Flask en http://%s:%s/webhook ...", host, port)
-    app.run(host=host, port=port, debug=True)
+    app.run(host=host, port=port, debug=False, use_reloader=False)
