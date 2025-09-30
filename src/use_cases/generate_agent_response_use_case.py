@@ -1,5 +1,5 @@
 """
-Path: src/use_cases/generate_rasa_response_use_case.py
+Path: src/use_cases/generate_agent_response_use_case.py
 
 Caso de uso para generar respuesta con Rasa.
 """
@@ -7,7 +7,7 @@ Caso de uso para generar respuesta con Rasa.
 from src.entities.conversation_manager import ConversationManager
 from src.entities.message import Message
 
-class GenerateRasaResponseUseCase:
+class GenerateAgentResponseUseCase:
     "Orquesta la generación de respuestas usando el servicio Rasa."
     def __init__(self, rasa_service, conversation_manager: ConversationManager):
         self.rasa_service = rasa_service

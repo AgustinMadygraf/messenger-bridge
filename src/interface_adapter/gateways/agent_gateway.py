@@ -1,10 +1,27 @@
 """
-Path: src/interface_adapter/gateways/rasa_gateway.py
+Path: src/interface_adapter/gateways/agent_gateway.py
 """
 
 import requests
 
-class RasaGateway:
+
+class AgentService:
+    """
+    Servicio que abstrae la comunicación con Rasa usando el gateway.
+    """
+    def __init__(self, rasa_url: str):
+        self.gateway = AgentGateway(rasa_url)
+
+    def get_response(self, prompt: str) -> str:
+        """
+        Obtiene una respuesta de Rasa para el prompt dado.
+        :param prompt: str, mensaje del usuario.
+        :return: str, respuesta generada por Rasa.
+        """
+        return self.gateway.get_response(prompt)
+
+
+class AgentGateway:
     " Interfaz para comunicarse con un modelo Rasa."
     def __init__(self, rasa_url: str):
         self.rasa_url = rasa_url  # Ejemplo: "http://localhost:5005/webhooks/rest/webhook"

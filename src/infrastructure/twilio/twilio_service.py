@@ -8,8 +8,8 @@ from twilio.base.exceptions import TwilioRestException
 from src.shared.config import get_config
 from src.shared.logger import get_logger
 
-from src.use_cases.generate_rasa_response_use_case import GenerateRasaResponseUseCase
-from src.infrastructure.rasa_service import RasaService
+from src.interface_adapter.gateways.agent_gateway import AgentService
+from src.use_cases.generate_agent_response_use_case import GenerateAgentResponseUseCase
 from src.entities.conversation_manager import ConversationManager
 
 class TwilioMessageSender:
@@ -17,9 +17,9 @@ class TwilioMessageSender:
     def __init__(self, from_number, rasa_url="http://localhost:5005/webhooks/rest/webhook"):
         self.from_number = from_number
         self.logger = get_logger("twilio-bot.twilio_service")
-        self.rasa_service = RasaService(rasa_url)
+        self.rasa_service = AgentService(rasa_url)
         self.conversation_manager = ConversationManager()
-        self.rasa_use_case = GenerateRasaResponseUseCase(self.rasa_service, self.conversation_manager)
+        self.rasa_use_case = GenerateAgentResponseUseCase(self.rasa_service, self.conversation_manager)
 
     def send_message(self, message, _content_sid=None, _content_variables=None):
         "Genera respuesta con Rasa y la envía por WhatsApp usando Twilio."

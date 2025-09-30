@@ -7,10 +7,10 @@ from flask import Flask, request, Response, render_template_string
 
 from src.shared.logger import get_logger
 
-from src.infrastructure.rasa_service import RasaService
+from src.interface_adapter.gateways.agent_gateway import AgentService
 from src.interface_adapter.presenters.twilio_presenter import TwilioPresenter
 from src.interface_adapter.presenters.telegram_presenter import TelegramMessagePresenter
-from src.use_cases.generate_rasa_response_use_case import GenerateRasaResponseUseCase
+from src.use_cases.generate_agent_response_use_case import GenerateAgentResponseUseCase
 from src.entities.conversation import Conversation
 from src.entities.conversation_manager import ConversationManager
 from src.entities.message import Message
@@ -19,8 +19,8 @@ logger = get_logger("flask-webhook")
 
 conversation_manager = ConversationManager()
 RASA_URL = "http://localhost:5005/webhooks/rest/webhook"
-rasa_service = RasaService(RASA_URL)
-generate_rasa_use_case = GenerateRasaResponseUseCase(rasa_service, conversation_manager)
+rasa_service = AgentService(RASA_URL)
+generate_rasa_use_case = GenerateAgentResponseUseCase(rasa_service, conversation_manager)
 twilio_presenter = TwilioPresenter()
 telegram_presenter = TelegramMessagePresenter()
 
