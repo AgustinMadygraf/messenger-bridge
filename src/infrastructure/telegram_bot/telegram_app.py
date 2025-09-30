@@ -9,14 +9,11 @@ from telegram import Update
 from src.shared.logger import get_logger
 from src.shared.config import get_config
 
-from src.infrastructure.google_generativeai.gemini_service import GeminiService
 from src.infrastructure.rasa_service import RasaService
 from src.interface_adapter.gateways.telegram_gateway import TelegramGateway
 from src.interface_adapter.controller.telegram_message_controller import TelegramMessageController
 from src.interface_adapter.presenters.telegram_presenter import TelegramMessagePresenter
-from src.use_cases.generate_gemini_response_use_case import GenerateGeminiResponseUseCase
 from src.use_cases.generate_rasa_response_use_case import GenerateRasaResponseUseCase
-from src.use_cases.generate_response_with_memory_use_case import GenerateResponseWithMemoryUseCase
 from src.entities.conversation_manager import ConversationManager
 
 logger = get_logger(__name__)
