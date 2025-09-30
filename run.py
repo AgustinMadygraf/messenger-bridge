@@ -18,9 +18,16 @@ def run_cli_mode_entry():
     run_cli_mode()
 
 def run_twilio_entry():
-    "Runs the application in Twilio webhook mode."
+    "Runs the application in Twilio webhook mode, only if ngrok starts successfully."
+    from src.infrastructure.pyngrok.ngrok_service import NgrokService
     from src.infrastructure.flask.flask_webhook import run_flask_webhook
-    logger.info("[Twilio] Iniciando modo webhook...")
+    logger.info("[Twilio] Iniciando ngrok...")
+    ngrok_service = NgrokService(port=5000)
+    public_url = ngrok_service.start()
+    if not public_url:
+        logger.error("No se pudo iniciar ngrok. Twilio no se iniciará.")
+        return
+    logger.info(f"[Twilio] ngrok iniciado en {public_url}. Iniciando webhook Flask...")
     run_flask_webhook()
 
 def run_telegram_entry():
