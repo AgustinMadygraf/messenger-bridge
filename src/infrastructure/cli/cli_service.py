@@ -8,7 +8,7 @@ logger = get_logger("twilio-bot.cli")
 
 def run_cli_mode():
     "Configura y ejecuta el modo CLI usando Rasa."
-    from src.interface_adapter.gateways.agent_gateway import AgentService
+    from src.interface_adapter.gateways.agent_gateway import AgentGateway
     from src.interface_adapter.presenters.telegram_presenter import TelegramMessagePresenter
     from src.use_cases.generate_agent_response_use_case import GenerateAgentResponseUseCase
     from src.entities.conversation_manager import ConversationManager
@@ -16,7 +16,7 @@ def run_cli_mode():
 
     # Puedes cambiar la URL si tu Rasa corre en otro puerto/host
     rasa_url = "http://localhost:5005/webhooks/rest/webhook"
-    rasa_service = AgentService(rasa_url)
+    rasa_service = AgentGateway(rasa_url)
     conversation_manager = ConversationManager()
     use_case = GenerateAgentResponseUseCase(rasa_service, conversation_manager)
     presenter = TelegramMessagePresenter()

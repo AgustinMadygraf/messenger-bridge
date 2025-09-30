@@ -9,7 +9,7 @@ from telegram import Update
 from src.shared.logger import get_logger
 from src.shared.config import get_config
 
-from src.interface_adapter.gateways.agent_gateway import AgentService
+from src.interface_adapter.gateways.agent_gateway import AgentGateway
 from src.interface_adapter.gateways.telegram_gateway import TelegramGateway
 from src.interface_adapter.controller.telegram_message_controller import TelegramMessageController
 from src.interface_adapter.presenters.telegram_presenter import TelegramMessagePresenter
@@ -86,7 +86,7 @@ def run_telegram_mode():
 
     conversation_manager = ConversationManager()
     rasa_url = config.get("RASA_API_URL", "http://localhost:5005/webhooks/rest/webhook")
-    rasa_service = AgentService(rasa_url)
+    rasa_service = AgentGateway(rasa_url)
     use_case = GenerateAgentResponseUseCase(rasa_service, conversation_manager)
 
     controller = TelegramMessageController(use_case, presenter)
@@ -101,7 +101,7 @@ class TelegramApp:
     "Aplicación principal para manejar interacciones de Telegram con Rasa."
     def __init__(self, token: str, rasa_url: str):
         self.token = token
-        self.rasa_service = AgentService(rasa_url)
+        self.rasa_service = AgentGateway(rasa_url)
         self.conversation_manager = ConversationManager()
         self.generate_response_use_case = GenerateAgentResponseUseCase(
             self.rasa_service,
