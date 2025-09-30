@@ -18,7 +18,7 @@ class RasaGateway:
         payload = {"sender": "user", "message": prompt}
         print(f"[RASA-GATEWAY] Enviando prompt a Rasa: {prompt}")  # Depuración
         try:
-            response = requests.post(self.rasa_url, json=payload, timeout=10)
+            response = requests.post(self.rasa_url, json=payload, timeout=20)
             response.raise_for_status()
             data = response.json()
             print(f"[RASA-GATEWAY] Respuesta recibida: {data}")  # Depuración
