@@ -7,7 +7,7 @@ import requests
 class AgentGateway:
     " Interfaz para comunicarse con un modelo Rasa."
     def __init__(self, rasa_url: str):
-        self.rasa_url = rasa_url  # Ejemplo: "http://localhost:5005/webhooks/rest/webhook"
+        self.rasa_url = rasa_url
 
     def get_response(self, prompt: str) -> str:
         """

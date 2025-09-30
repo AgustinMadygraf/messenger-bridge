@@ -6,6 +6,7 @@ import os
 from flask import Flask, request, Response, render_template_string
 
 from src.shared.logger import get_logger
+from src.shared.config import get_config
 
 from src.interface_adapter.gateways.agent_gateway import AgentGateway
 from src.interface_adapter.presenters.twilio_presenter import TwilioPresenter
@@ -14,7 +15,8 @@ from src.entities.message import Message
 
 logger = get_logger("flask-webhook")
 
-RASA_URL = "http://localhost:5005/webhooks/rest/webhook"
+config = get_config()
+RASA_URL = config.get("RASA_API_URL", "http://localhost:5005/webhooks/rest/webhook")
 rasa_service = AgentGateway(RASA_URL)
 generate_rasa_use_case = GenerateAgentResponseUseCase(rasa_service)
 twilio_presenter = TwilioPresenter()

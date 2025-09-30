@@ -3,6 +3,7 @@ Path: src/infrastructure/cli/cli_service.py
 """
 
 from src.shared.logger import get_logger
+from src.shared.config import get_config
 
 from src.interface_adapter.gateways.agent_gateway import AgentGateway
 from src.interface_adapter.gateways.cli_gateway import CliGateway
@@ -16,11 +17,13 @@ logger = get_logger("twilio-bot.cli")
 class CliSender:
     "Implementación concreta para enviar mensajes por CLI."
     def send_message(self, message: Message, _content_sid: str = "", _content_variables: dict = None):
+        "Envía el mensaje imprimiéndolo en la consola."
         print(message.body)
 
 def run_cli_mode():
     "Configura y ejecuta el modo CLI usando Rasa."
-    rasa_url = "http://localhost:5005/webhooks/rest/webhook"
+    config = get_config()
+    rasa_url = config.get("RASA_API_URL", "http://localhost:5005/webhooks/rest/webhook")
     rasa_service = AgentGateway(rasa_url)
     use_case = GenerateAgentResponseUseCase(rasa_service)
     presenter = CliPresenter()

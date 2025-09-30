@@ -11,7 +11,7 @@ class GenerateAgentResponseUseCase:
     def __init__(self, rasa_service):
         self.rasa_service = rasa_service
 
-    def execute(self, conversation_id: str, user_message: Message) -> Message:
+    def execute(self, _conversation_id: str, user_message: Message) -> Message:
         " Genera una respuesta de Rasa para el mensaje del usuario."
         print(f"[USECASE] Mensaje recibido: {user_message.body}")
         prompt = user_message.body

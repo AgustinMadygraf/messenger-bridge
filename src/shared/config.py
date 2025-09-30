@@ -19,9 +19,10 @@ def get_config():
         "WHATSAPP_TO": os.getenv('TWILIO_WHATSAPP_TO'),
         "GOOGLE_GEMINI_MODEL": os.getenv('GOOGLE_GEMINI_MODEL'),
         "GOOGLE_GEMINI_API_KEY": os.getenv('GOOGLE_GEMINI_API_KEY'),
-        "GOOGLE_APPLICATION_CREDENTIALS": os.getenv('GOOGLE_APPLICATION_CREDENTIALS'),  # <-- NUEVO
+        "GOOGLE_APPLICATION_CREDENTIALS": os.getenv('GOOGLE_APPLICATION_CREDENTIALS'),
         "LOG_LEVEL": os.getenv('LOG_LEVEL', 'DEBUG'),
-        "TELEGRAM_API_KEY": os.getenv('TELEGRAM_API_KEY')
+        "TELEGRAM_API_KEY": os.getenv('TELEGRAM_API_KEY'),
+        "RASA_API_URL": os.getenv('RASA_API_URL', 'http://localhost:5005/webhooks/rest/webhook')
     }
 
     if not config["ACCOUNT_SID"] or not config["AUTH_TOKEN"]:

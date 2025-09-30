@@ -13,10 +13,12 @@ from src.use_cases.generate_agent_response_use_case import GenerateAgentResponse
 
 class TwilioMessageSender:
     " Implementación de MessageSender usando Twilio y Rasa. "
-    def __init__(self, from_number, rasa_url="http://localhost:5005/webhooks/rest/webhook"):
+    def __init__(self, from_number, rasa_url=None):
         self.from_number = from_number
         self.logger = get_logger("twilio-bot.twilio_service")
-        self.rasa_service = AgentGateway(rasa_url)
+        config = get_config()
+        self.rasa_url = rasa_url or config.get("RASA_API_URL", "http://localhost:5005/webhooks/rest/webhook")
+        self.rasa_service = AgentGateway(self.rasa_url)
         self.rasa_use_case = GenerateAgentResponseUseCase(self.rasa_service)
 
     def send_message(self, message, _content_sid=None, _content_variables=None):
