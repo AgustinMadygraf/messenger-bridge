@@ -14,7 +14,6 @@ from src.interface_adapter.gateways.telegram_gateway import TelegramGateway
 from src.interface_adapter.controller.telegram_message_controller import TelegramMessageController
 from src.interface_adapter.presenters.telegram_presenter import TelegramMessagePresenter
 from src.use_cases.generate_agent_response_use_case import GenerateAgentResponseUseCase
-from src.entities.conversation_manager import ConversationManager
 
 logger = get_logger(__name__)
 config = get_config()
@@ -37,7 +36,7 @@ class TelegramSender:
 
     def add_message_handler(self, handler):
         "Agrega un handler para mensajes entrantes de cualquier tipo."
-        self.app.add_handler(MessageHandler(filters.ALL, handler))  # <-- Cambia filters.TEXT por filters.ALL
+        self.app.add_handler(MessageHandler(filters.ALL, handler))
 
     def add_command_handler(self, command, handler):
         "Agrega un handler para comandos específicos."
@@ -74,7 +73,7 @@ def make_handler(controller, gateway):
     return handler
 
 def run_telegram_mode():
-    "Configura e inicia el bot de Telegram con memoria y Rasa."
+    "Configura e inicia el bot de Telegram con Rasa."
     telegram_token = config.get("TELEGRAM_API_KEY")
     if not telegram_token:
         logger.error("No se encontró el token de Telegram en la configuración.")
@@ -84,10 +83,9 @@ def run_telegram_mode():
     gateway = TelegramGateway(sender)
     presenter = TelegramMessagePresenter()
 
-    conversation_manager = ConversationManager()
     rasa_url = config.get("RASA_API_URL", "http://localhost:5005/webhooks/rest/webhook")
     rasa_service = AgentGateway(rasa_url)
-    use_case = GenerateAgentResponseUseCase(rasa_service, conversation_manager)
+    use_case = GenerateAgentResponseUseCase(rasa_service)
 
     controller = TelegramMessageController(use_case, presenter)
 
@@ -102,10 +100,8 @@ class TelegramApp:
     def __init__(self, token: str, rasa_url: str):
         self.token = token
         self.rasa_service = AgentGateway(rasa_url)
-        self.conversation_manager = ConversationManager()
         self.generate_response_use_case = GenerateAgentResponseUseCase(
-            self.rasa_service,
-            self.conversation_manager
+            self.rasa_service
         )
 
     def handle_message(self, chat_id: str, text: str):

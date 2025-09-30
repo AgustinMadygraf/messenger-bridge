@@ -3,6 +3,7 @@ Path: src/entities/conversation.py
 """
 
 from typing import List, Optional
+
 from src.entities.message import Message
 
 class Conversation:

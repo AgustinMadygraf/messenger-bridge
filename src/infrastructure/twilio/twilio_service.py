@@ -10,7 +10,6 @@ from src.shared.logger import get_logger
 
 from src.interface_adapter.gateways.agent_gateway import AgentGateway
 from src.use_cases.generate_agent_response_use_case import GenerateAgentResponseUseCase
-from src.entities.conversation_manager import ConversationManager
 
 class TwilioMessageSender:
     " Implementación de MessageSender usando Twilio y Rasa. "
@@ -18,8 +17,7 @@ class TwilioMessageSender:
         self.from_number = from_number
         self.logger = get_logger("twilio-bot.twilio_service")
         self.rasa_service = AgentGateway(rasa_url)
-        self.conversation_manager = ConversationManager()
-        self.rasa_use_case = GenerateAgentResponseUseCase(self.rasa_service, self.conversation_manager)
+        self.rasa_use_case = GenerateAgentResponseUseCase(self.rasa_service)
 
     def send_message(self, message, _content_sid=None, _content_variables=None):
         "Genera respuesta con Rasa y la envía por WhatsApp usando Twilio."

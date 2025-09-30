@@ -11,16 +11,13 @@ from src.interface_adapter.gateways.agent_gateway import AgentGateway
 from src.interface_adapter.presenters.twilio_presenter import TwilioPresenter
 from src.interface_adapter.presenters.telegram_presenter import TelegramMessagePresenter
 from src.use_cases.generate_agent_response_use_case import GenerateAgentResponseUseCase
-from src.entities.conversation import Conversation
-from src.entities.conversation_manager import ConversationManager
 from src.entities.message import Message
 
 logger = get_logger("flask-webhook")
 
-conversation_manager = ConversationManager()
 RASA_URL = "http://localhost:5005/webhooks/rest/webhook"
 rasa_service = AgentGateway(RASA_URL)
-generate_rasa_use_case = GenerateAgentResponseUseCase(rasa_service, conversation_manager)
+generate_rasa_use_case = GenerateAgentResponseUseCase(rasa_service)
 twilio_presenter = TwilioPresenter()
 telegram_presenter = TelegramMessagePresenter()
 
@@ -45,34 +42,6 @@ def run_flask_webhook(host="0.0.0.0", port=5000):
             media_url = data.get('MediaUrl0')
             media_type = data.get('MediaContentType0')
             logger.info("[Twilio] Archivo multimedia recibido: %s (%s)", media_url, media_type)
-
-        # --- GESTIÓN DE SESIÓN POR REMITENTE ---
-        history = conversation_manager.get_history(from_number)
-        conversation = Conversation(conversation_id=from_number)
-        for msg in history:
-            if isinstance(msg, Message):
-                conversation.add_message(msg)
-            elif isinstance(msg, dict):
-                conversation.add_message(
-                    Message(to=msg.get("sender", ""), body=msg.get("message", ""))
-                )
-        conversation.add_message(
-            Message(
-                to="user",
-                body=user_message,
-                media_url=media_url,
-                media_type=media_type
-            )
-        )
-        conversation_manager.add_message(
-            from_number,
-            Message(
-                to="user",
-                body=user_message,
-                media_url=media_url,
-                media_type=media_type
-            )
-        )
 
         # --- Construye entidad Message para texto y multimedia ---
         whatsapp_message = Message(

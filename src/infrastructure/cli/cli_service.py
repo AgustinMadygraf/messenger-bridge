@@ -11,14 +11,12 @@ def run_cli_mode():
     from src.interface_adapter.gateways.agent_gateway import AgentGateway
     from src.interface_adapter.presenters.telegram_presenter import TelegramMessagePresenter
     from src.use_cases.generate_agent_response_use_case import GenerateAgentResponseUseCase
-    from src.entities.conversation_manager import ConversationManager
     from src.entities.message import Message
 
     # Puedes cambiar la URL si tu Rasa corre en otro puerto/host
     rasa_url = "http://localhost:5005/webhooks/rest/webhook"
     rasa_service = AgentGateway(rasa_url)
-    conversation_manager = ConversationManager()
-    use_case = GenerateAgentResponseUseCase(rasa_service, conversation_manager)
+    use_case = GenerateAgentResponseUseCase(rasa_service)
     presenter = TelegramMessagePresenter()
 
     logger.info("[CLI] Modo respuesta Rasa. Escribe un mensaje para simular recepción (escribe 'salir' para terminar):")
