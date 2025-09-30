@@ -7,12 +7,10 @@ from flask import Flask, request, Response, render_template_string
 
 from src.shared.logger import get_logger
 
-from src.infrastructure.google_generativeai.gemini_service import GeminiService
-from src.interface_adapter.controller.incoming_message_controller import IncomingMessageController
-from src.interface_adapter.gateways.gemini_gateway import GeminiGateway
+from src.infrastructure.rasa_service import RasaService
 from src.interface_adapter.presenters.twilio_presenter import TwilioPresenter
-from src.interface_adapter.presenters.gemini_presenter import GeminiPresenter
-from src.use_cases.generate_gemini_response_use_case import GenerateGeminiResponseUseCase
+from src.interface_adapter.presenters.telegram_presenter import TelegramMessagePresenter
+from src.use_cases.generate_rasa_response_use_case import GenerateRasaResponseUseCase
 from src.entities.conversation import Conversation
 from src.entities.conversation_manager import ConversationManager
 from src.entities.message import Message
@@ -20,16 +18,14 @@ from src.entities.message import Message
 logger = get_logger("flask-webhook")
 
 conversation_manager = ConversationManager()
-gemini_service = GeminiService(
-    instructions_json_path="src/infrastructure/google_generativeai/system_instructions.json"
-)
-gemini_gateway = GeminiGateway(gemini_service)
-generate_gemini_use_case = GenerateGeminiResponseUseCase(gemini_gateway)
-gemini_presenter = GeminiPresenter()
+RASA_URL = "http://localhost:5005/webhooks/rest/webhook"
+rasa_service = RasaService(RASA_URL)
+generate_rasa_use_case = GenerateRasaResponseUseCase(rasa_service, conversation_manager)
 twilio_presenter = TwilioPresenter()
+telegram_presenter = TelegramMessagePresenter()
 
 def run_flask_webhook(host="0.0.0.0", port=5000):
-    "Inicia un servidor Flask para manejar webhooks de Twilio."
+    "Inicia un servidor Flask para manejar webhooks de Twilio usando Rasa."
     app = Flask(__name__, static_folder=os.path.abspath("static"))
 
     @app.route('/webhook', methods=['POST'])
@@ -54,15 +50,12 @@ def run_flask_webhook(host="0.0.0.0", port=5000):
         history = conversation_manager.get_history(from_number)
         conversation = Conversation(conversation_id=from_number)
         for msg in history:
-            # Si el historial ya contiene Message, simplemente agrégalo
             if isinstance(msg, Message):
                 conversation.add_message(msg)
-            # Si es dict, conviértelo a Message
             elif isinstance(msg, dict):
                 conversation.add_message(
                     Message(to=msg.get("sender", ""), body=msg.get("message", ""))
                 )
-        # Guarda el mensaje recibido (texto y/o multimedia)
         conversation.add_message(
             Message(
                 to="user",
@@ -89,18 +82,15 @@ def run_flask_webhook(host="0.0.0.0", port=5000):
             media_type=media_type
         )
 
-        # Usa la conversación específica en el controlador
-        incoming_message_controller = IncomingMessageController(generate_gemini_use_case, conversation)
-        # Modifica el controlador para aceptar Message si es necesario
-        response_text = incoming_message_controller.handle(from_number, whatsapp_message)
-        bot_message = Message(to="Bot", body=response_text)
+        # Usa el caso de uso de Rasa para obtener la respuesta
+        response_message = generate_rasa_use_case.execute(from_number, whatsapp_message)
+        bot_message = Message(to="Bot", body=response_message.body)
         twiml = twilio_presenter.present(bot_message)
         logger.info("Respuesta TwiML generada: %s", twiml)
         return Response(twiml, mimetype='application/xml')
 
     @app.route('/', methods=['GET'])
     def index():
-        # Renderiza una página HTML que muestra el QR
         html = """
         <!DOCTYPE html>
         <html>

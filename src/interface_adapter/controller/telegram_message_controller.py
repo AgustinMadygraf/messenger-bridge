@@ -13,6 +13,7 @@ class TelegramMessageController:
         self.presenter = presenter
 
     async def handle(self, chat_id, text):
+        "Maneja un mensaje entrante de Telegram y genera una respuesta usando Rasa."
         print(f"[CONTROLLER] chat_id: {chat_id}, texto: {text}")  # Depuración
         user_message = Message(to=chat_id, body=text)
         response_message = self.use_case.execute(chat_id, user_message)

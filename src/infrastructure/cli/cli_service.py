@@ -7,25 +7,21 @@ from src.shared.logger import get_logger
 logger = get_logger("twilio-bot.cli")
 
 def run_cli_mode():
-    "Configures and returns components for CLI interaction mode."
-    from src.infrastructure.google_generativeai.gemini_service import GeminiService
-    from src.interface_adapter.gateways.gemini_gateway import GeminiGateway
-    from src.interface_adapter.controller.gemini_controller import GeminiController
-    from src.interface_adapter.presenters.gemini_presenter import GeminiPresenter
-    from src.use_cases.generate_gemini_response_use_case import GenerateGeminiResponseUseCase
-    from src.entities.conversation import Conversation
+    "Configura y ejecuta el modo CLI usando Rasa."
+    from src.infrastructure.rasa_service import RasaService
+    from src.interface_adapter.presenters.telegram_presenter import TelegramMessagePresenter
+    from src.use_cases.generate_rasa_response_use_case import GenerateRasaResponseUseCase
+    from src.entities.conversation_manager import ConversationManager
     from src.entities.message import Message
 
-    gemini_service = GeminiService(
-        instructions_json_path="src/infrastructure/google_generativeai/system_instructions.json"
-    )
-    gemini_gateway = GeminiGateway(gemini_service)
-    use_case = GenerateGeminiResponseUseCase(gemini_gateway)
-    conversation = Conversation()
-    controller = GeminiController(use_case, conversation)
-    presenter = GeminiPresenter()
+    # Puedes cambiar la URL si tu Rasa corre en otro puerto/host
+    rasa_url = "http://localhost:5005/webhooks/rest/webhook"
+    rasa_service = RasaService(rasa_url)
+    conversation_manager = ConversationManager()
+    use_case = GenerateRasaResponseUseCase(rasa_service, conversation_manager)
+    presenter = TelegramMessagePresenter()
 
-    logger.info("[CLI] Modo respuesta. Escribe un mensaje para simular recepción (escribe 'salir' para terminar):")
+    logger.info("[CLI] Modo respuesta Rasa. Escribe un mensaje para simular recepción (escribe 'salir' para terminar):")
     try:
         while True:
             user_input = input("Usuario: ")
@@ -33,8 +29,10 @@ def run_cli_mode():
                 logger.info("Saliendo del modo CLI respuesta.")
                 break
 
-            response = controller.handle_user_message(user_input)
-            formatted_response = presenter.present(Message(to="Bot", body=response))
+            # Usamos 'cli' como conversation_id
+            user_message = Message(to="cli", body=user_input)
+            response_message = use_case.execute("cli", user_message)
+            formatted_response = presenter.present(response_message)
             print(formatted_response)
 
     except KeyboardInterrupt:

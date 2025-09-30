@@ -98,6 +98,7 @@ def run_telegram_mode():
     sender.run()
 
 class TelegramApp:
+    "Aplicación principal para manejar interacciones de Telegram con Rasa."
     def __init__(self, token: str, rasa_url: str):
         self.token = token
         self.rasa_service = RasaService(rasa_url)
@@ -108,7 +109,7 @@ class TelegramApp:
         )
 
     def handle_message(self, chat_id: str, text: str):
-        # Crea el mensaje del usuario
+        "Maneja un mensaje entrante de Telegram."
         from src.entities.message import Message
         user_message = Message(to=chat_id, body=text)
         # Usa el caso de uso de Rasa para obtener la respuesta

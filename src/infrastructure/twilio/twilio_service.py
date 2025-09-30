@@ -2,33 +2,38 @@
 Path: src/infrastructure/twilio/twilio_service.py
 """
 
-import json
 from twilio.rest import Client
 from twilio.base.exceptions import TwilioRestException
 
 from src.shared.config import get_config
 from src.shared.logger import get_logger
 
-from src.use_cases.send_message_use_case import MessageSender
+from src.use_cases.generate_rasa_response_use_case import GenerateRasaResponseUseCase
+from src.infrastructure.rasa_service import RasaService
+from src.entities.conversation_manager import ConversationManager
 
-class TwilioMessageSender(MessageSender):
-    " Implementación de MessageSender usando Twilio. "
-    def __init__(self, from_number):
+class TwilioMessageSender:
+    " Implementación de MessageSender usando Twilio y Rasa. "
+    def __init__(self, from_number, rasa_url="http://localhost:5005/webhooks/rest/webhook"):
         self.from_number = from_number
         self.logger = get_logger("twilio-bot.twilio_service")
+        self.rasa_service = RasaService(rasa_url)
+        self.conversation_manager = ConversationManager()
+        self.rasa_use_case = GenerateRasaResponseUseCase(self.rasa_service, self.conversation_manager)
 
-    def send_message(self, message, content_sid, content_variables):
-        "Envía un mensaje WhatsApp usando Twilio."
+    def send_message(self, message, _content_sid=None, _content_variables=None):
+        "Genera respuesta con Rasa y la envía por WhatsApp usando Twilio."
         config = get_config()
         client = Client(config["ACCOUNT_SID"], config["AUTH_TOKEN"])
-        if isinstance(content_variables, dict):
-            content_variables = json.dumps(content_variables)
-        self.logger.debug("content_variables enviados a Twilio: %s", content_variables)
+
+        # Genera la respuesta con Rasa
+        response_message = self.rasa_use_case.execute(message.to, message)
+        text_to_send = response_message.body
+
         try:
             twilio_message = client.messages.create(
                 from_=self.from_number,
-                content_sid=content_sid,
-                content_variables=content_variables,
+                body=text_to_send,
                 to=message.to
             )
             self.logger.info("Mensaje enviado correctamente. SID: %s", twilio_message.sid)
