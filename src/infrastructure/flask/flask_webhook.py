@@ -9,7 +9,6 @@ from src.shared.logger import get_logger
 
 from src.interface_adapter.gateways.agent_gateway import AgentGateway
 from src.interface_adapter.presenters.twilio_presenter import TwilioPresenter
-from src.interface_adapter.presenters.telegram_presenter import TelegramMessagePresenter
 from src.use_cases.generate_agent_response_use_case import GenerateAgentResponseUseCase
 from src.entities.message import Message
 
@@ -19,7 +18,6 @@ RASA_URL = "http://localhost:5005/webhooks/rest/webhook"
 rasa_service = AgentGateway(RASA_URL)
 generate_rasa_use_case = GenerateAgentResponseUseCase(rasa_service)
 twilio_presenter = TwilioPresenter()
-telegram_presenter = TelegramMessagePresenter()
 
 def run_flask_webhook(host="0.0.0.0", port=5000):
     "Inicia un servidor Flask para manejar webhooks de Twilio usando Rasa."

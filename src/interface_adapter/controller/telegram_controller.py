@@ -1,5 +1,5 @@
 """
-Path: src/interface_adapter/controller/telegram_message_controller.py
+Path: src/interface_adapter/controller/telegram_controller.py
 
 Controlador para manejar mensajes entrantes de Telegram usando Rasa.
 """

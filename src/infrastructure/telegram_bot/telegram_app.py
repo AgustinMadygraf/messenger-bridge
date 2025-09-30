@@ -2,7 +2,6 @@
 Path: src/infrastructure/telegram_bot/telegram.py
 """
 
-import os
 from telegram.ext import ApplicationBuilder, CommandHandler, MessageHandler, filters, ContextTypes
 from telegram import Update
 
@@ -11,19 +10,13 @@ from src.shared.config import get_config
 
 from src.interface_adapter.gateways.agent_gateway import AgentGateway
 from src.interface_adapter.gateways.telegram_gateway import TelegramGateway
-from src.interface_adapter.controller.telegram_message_controller import TelegramMessageController
+from src.interface_adapter.controller.telegram_controller import TelegramMessageController
 from src.interface_adapter.presenters.telegram_presenter import TelegramMessagePresenter
 from src.use_cases.generate_agent_response_use_case import GenerateAgentResponseUseCase
+from src.entities.message import Message
 
 logger = get_logger(__name__)
 config = get_config()
-
-SYSTEM_INSTRUCTIONS_PATH = os.path.join(
-    os.path.dirname(__file__),
-    "..",
-    "google_generativeai",
-    "system_instructions.json"
-)
 
 class TelegramSender:
     "Implementación concreta para enviar y manejar mensajes con Telegram."
@@ -106,7 +99,6 @@ class TelegramApp:
 
     def handle_message(self, chat_id: str, text: str):
         "Maneja un mensaje entrante de Telegram."
-        from src.entities.message import Message
         user_message = Message(to=chat_id, body=text)
         # Usa el caso de uso de Rasa para obtener la respuesta
         response_message = self.generate_response_use_case.execute(chat_id, user_message)
