@@ -10,10 +10,12 @@ from src.shared.logger import get_logger
 from src.shared.config import get_config
 
 from src.infrastructure.google_generativeai.gemini_service import GeminiService
+from src.infrastructure.rasa_service import RasaService
 from src.interface_adapter.gateways.telegram_gateway import TelegramGateway
 from src.interface_adapter.controller.telegram_message_controller import TelegramMessageController
 from src.interface_adapter.presenters.telegram_presenter import TelegramMessagePresenter
 from src.use_cases.generate_gemini_response_use_case import GenerateGeminiResponseUseCase
+from src.use_cases.generate_rasa_response_use_case import GenerateRasaResponseUseCase
 from src.use_cases.generate_response_with_memory_use_case import GenerateResponseWithMemoryUseCase
 from src.entities.conversation_manager import ConversationManager
 
@@ -75,7 +77,7 @@ def make_handler(controller, gateway):
     return handler
 
 def run_telegram_mode():
-    "Configura e inicia el bot de Telegram con memoria y Gemini."
+    "Configura e inicia el bot de Telegram con memoria y Rasa."
     telegram_token = config.get("TELEGRAM_API_KEY")
     if not telegram_token:
         logger.error("No se encontró el token de Telegram en la configuración.")
@@ -86,10 +88,9 @@ def run_telegram_mode():
     presenter = TelegramMessagePresenter()
 
     conversation_manager = ConversationManager()
-    gemini_service = GeminiService(instructions_json_path=SYSTEM_INSTRUCTIONS_PATH)
-    gemini_use_case = GenerateGeminiResponseUseCase(gemini_service)
-    # Las instrucciones ya están cargadas en gemini_service.system_instructions
-    use_case = GenerateResponseWithMemoryUseCase(conversation_manager, gemini_use_case, gemini_service.system_instructions)
+    rasa_url = config.get("RASA_API_URL", "http://localhost:5005/webhooks/rest/webhook")
+    rasa_service = RasaService(rasa_url)
+    use_case = GenerateRasaResponseUseCase(rasa_service, conversation_manager)
 
     controller = TelegramMessageController(use_case, presenter)
 
@@ -98,3 +99,22 @@ def run_telegram_mode():
 
     logger.info("Iniciando bot de Telegram...")
     sender.run()
+
+class TelegramApp:
+    def __init__(self, token: str, rasa_url: str):
+        self.token = token
+        self.rasa_service = RasaService(rasa_url)
+        self.conversation_manager = ConversationManager()
+        self.generate_response_use_case = GenerateRasaResponseUseCase(
+            self.rasa_service,
+            self.conversation_manager
+        )
+
+    def handle_message(self, chat_id: str, text: str):
+        # Crea el mensaje del usuario
+        from src.entities.message import Message
+        user_message = Message(to=chat_id, body=text)
+        # Usa el caso de uso de Rasa para obtener la respuesta
+        response_message = self.generate_response_use_case.execute(chat_id, user_message)
+        # Envía la respuesta al usuario por Telegram
+        self.send_message(chat_id, response_message.body)
