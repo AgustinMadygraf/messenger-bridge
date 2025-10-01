@@ -13,8 +13,6 @@ def get_config():
     config = {
         "ACCOUNT_SID": os.getenv('TWILIO_ACCOUNT_SID'),
         "AUTH_TOKEN": os.getenv('TWILIO_AUTH_TOKEN'),
-        "WHATSAPP_FROM": os.getenv('TWILIO_WHATSAPP_FROM'),
-        "WHATSAPP_TO": os.getenv('TWILIO_WHATSAPP_TO'),
         "LOG_LEVEL": os.getenv('LOG_LEVEL', 'DEBUG'),
         "TELEGRAM_API_KEY": os.getenv('TELEGRAM_API_KEY'),
         "TELEGRAM_MODE": os.getenv('TELEGRAM_MODE', 'polling'),
