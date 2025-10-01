@@ -3,24 +3,23 @@ Path: run_transcriber.py
 """
 
 import os
-from src.infrastructure.audio.transcriber import transcribe_ogg
+from src.infrastructure.audio.local_audio_transcriber import LocalAudioTranscriber
 
-def main():
-    "Main function to run the OGG transcription process."
-    # Prompt the user for the path of the OGG file
-    ogg_file_path = input("Please enter the path of the OGG file: ")
+class TranscriberApp:
+    "Clase principal para ejecutar el proceso de transcripción de archivos OGG."
 
-    # Check if the file exists
-    if not os.path.isfile(ogg_file_path):
-        print("The specified file does not exist. Please check the path and try again.")
-        return
+    def run(self):
+        ogg_file_path = input("Please enter the path of the OGG file: ")
 
-    # Transcribe the OGG file
-    transcription = transcribe_ogg(ogg_file_path)
+        if not os.path.isfile(ogg_file_path):
+            print("The specified file does not exist. Please check the path and try again.")
+            return
 
-    # Display the transcription result
-    print("Transcription Result:")
-    print(transcription)
+        transcriber = LocalAudioTranscriber()
+        transcription = transcriber.transcribe_and_present(ogg_file_path)
+        print("Transcription Result:")
+        print(transcription)
 
 if __name__ == "__main__":
-    main()
+    app = TranscriberApp()
+    app.run()
