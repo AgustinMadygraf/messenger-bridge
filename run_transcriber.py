@@ -3,7 +3,7 @@ Path: run_transcriber.py
 """
 
 import os
-from src.transcriber import transcribe_ogg
+from src.infrastructure.audio.transcriber import transcribe_ogg
 
 def main():
     "Main function to run the OGG transcription process."

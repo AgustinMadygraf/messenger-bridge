@@ -1,5 +1,5 @@
 """
-Path: src/transcriber.py
+Path: src/infrastructure/audio/transcriber.py
 """
 
 import os

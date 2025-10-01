@@ -1,93 +1,96 @@
-# Twilio WhatsApp Bot
+# Messenger Bridge
 
 ## Descripción
-Este proyecto implementa un bot para enviar mensajes a través de WhatsApp utilizando la API de Twilio. Está diseñado siguiendo los principios de arquitectura limpia (Clean Architecture) para mantener una separación clara de responsabilidades y facilitar pruebas y mantenimiento.
+Messenger Bridge es un sistema de integración que conecta diferentes plataformas de mensajería (WhatsApp vía Twilio y Telegram) con un motor conversacional basado en Rasa (o equivalente), permitiendo mantener conversaciones inteligentes a través de distintos canales de comunicación.
 
-El sistema permite dos modos de operación:
-- **Modo Twilio Plantilla**: Envía mensajes reales usando la API de Twilio con plantilla
-- **Modo CLI Plantilla**: Simula el envío de mensajes por CLI con plantilla (útil para desarrollo y pruebas)
-
-## Estructura del proyecto
-```
-.
-├── run.py                           # Punto de entrada principal
-└── src/                             # Código fuente
-    ├── entities/                    # Entidades de dominio
-    │   └── whatsapp_message.py      # Entidad de mensaje WhatsApp
-    ├── infrastructure/              # Implementaciones concretas
-    │   └── twilio/                  # Servicios relacionados con Twilio
-    │       └── twilio_service.py    # Implementación de servicio Twilio
-    ├── interface_adapter/           # Adaptadores de interfaz
-    │   ├── controller/              # Controladores
-    │   ├── gateways/                # Gateways para servicios externos
-    │   └── presenters/              # Presentadores de datos
-    ├── shared/                      # Componentes compartidos
-    │   ├── config.py                # Gestión de configuración
-    │   └── logger.py                # Servicios de logging
-    └── use_cases/                   # Casos de uso de la aplicación
-        └── send_message_use_case.py
-```
+## Características
+- 🤖 Integración con chatbots basados en Rasa
+- 📱 Soporte para WhatsApp (vía Twilio)
+- ✈️ Soporte para Telegram
+- 🔊 Transcripción de mensajes de audio (OGG a texto)
+- 🌐 Exposición de webhooks mediante ngrok
+- 🖥️ Interfaz CLI para pruebas locales
 
 ## Requisitos
-- Python 3.6+
-- Cuenta de Twilio con:
-  - Account SID
-  - Auth Token
-  - Número de WhatsApp configurado
-  - Template de contenido aprobado
+- Python 3.10+
+- Cuenta en Twilio con configuración de WhatsApp Business API
+- Bot de Telegram (token generado a través de BotFather)
+- Servidor Rasa funcional
+- Cuenta en ngrok (recomendado el plan con dominio personalizado fijo)
 
 ## Instalación
-1. Clonar este repositorio
-2. Crear un entorno virtual:
-   ```
-   python -m venv venv
-   source venv/bin/activate  # En Windows: venv\Scripts\activate
-   ```
+
+1. Clonar el repositorio:
+```bash
+git clone https://github.com/AgustinMadygraf/messenger-bridge
+cd messenger-bridge
+```
+
+2. Crear y activar entorno virtual:
+```bash
+python -m venv venv
+# En Windows:
+.\venv\Scripts\activate
+# En Linux/Mac:
+source venv/bin/activate
+```
+
 3. Instalar dependencias:
-   ```
-   pip install -r requirements.txt
-   ```
-4. Copiar .env.example a .env y completar con tus credenciales:
-   ```
-   cp .env.example .env
-   ```
+```bash
+pip install -r requirements.txt
+```
+
+4. Configurar variables de entorno:
+```bash
+# Copiar el archivo de ejemplo
+cp .env.example .env
+# Editar .env con tus credenciales
+```
 
 ## Configuración
-Edita el archivo .env con tus credenciales de Twilio:
+
+Edita el archivo `.env` con tus credenciales:
 
 ```
-TWILIO_ACCOUNT_SID=tu_account_sid
-TWILIO_AUTH_TOKEN=tu_auth_token
-TWILIO_WHATSAPP_FROM=whatsapp:+14155238886
-TWILIO_CONTENT_SID=tu_content_sid
-TWILIO_CONTENT_VARIABLES={"body":"Mensaje de ejemplo"}
-TWILIO_WHATSAPP_TO=whatsapp:+1234567890
+TWILIO_ACCOUNT_SID=tu_account_sid_aqui
+TWILIO_AUTH_TOKEN=tu_auth_token_aqui
+TELEGRAM_API_KEY=tu_telegram_api_key_aqui
+LOG_LEVEL=INFO
+RASA_API_URL=http://localhost:5005/webhooks/rest/webhook
+NGROK_DOMAIN=tu_dominio_fijo.ngrok-free.app
 ```
 
 ## Uso
-### Modo Twilio (envío real)
+
+### Iniciar el servicio completo:
 ```bash
-python run.py --twilio-plantilla
+python run.py
 ```
 
-### Modo CLI (simulación)
+### Configurar webhook de Telegram:
 ```bash
-python run.py --cli-plantilla
+python set_telegram_webhook.py
 ```
 
-## Variables de contenido
-El formato de las variables de contenido debe coincidir con la plantilla configurada en Twilio. Para un template que espera variables específicas, configura `TWILIO_CONTENT_VARIABLES` en formato JSON según las necesidades de tu plantilla.
-
-Por ejemplo:
-```json
-{"1": "valor1", "2": "valor2", "body": "Mensaje principal"}
+### Usar el transcriptor de audio:
+```bash
+python run_transcriber.py
 ```
 
-## Arquitectura
-Este proyecto implementa una arquitectura limpia (Clean Architecture) con las siguientes capas:
-- **Entidades**: Objetos de negocio (Message)
-- **Casos de uso**: Lógica de aplicación independiente de infraestructura
-- **Adaptadores**: Conversión entre capas externas y casos de uso
-- **Infraestructura**: Implementaciones concretas (API de Twilio)
+## Estructura del Proyecto
 
-Esta estructura permite cambiar fácilmente componentes (como el proveedor de mensajería) sin afectar la lógica central.
+El proyecto sigue principios de arquitectura limpia (Clean Architecture):
+
+- **entities/**: Objetos de dominio (Message)
+- **use_cases/**: Lógica de negocio independiente de infraestructura
+- **interface_adapter/**: 
+  - **controller/**: Puntos de entrada para diferentes plataformas
+  - **presenters/**: Formateo de respuestas 
+  - **gateways/**: Interfaces para servicios externos
+- **infrastructure/**: Implementaciones concretas para cada plataforma
+  - **cli/**: Implementación de consola de comandos
+  - **fastapi/**: Implementación de webhooks con FastAPI
+  - **pyngrok/**: Configuración de túneles ngrok
+  - **telegram_bot/**: Implementación del bot de Telegram
+  - **twilio/**: Implementación de WhatsApp con Twilio
+- **shared/**: Utilidades compartidas (configuración, logging)
