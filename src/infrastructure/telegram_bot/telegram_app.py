@@ -43,6 +43,7 @@ async def start(update: Update, _context: ContextTypes.DEFAULT_TYPE):
 
 def run_telegram_mode():
     "Configura el webhook de Telegram (no levanta servidor, solo setea el webhook si es necesario)."
+    ensure_telegram_webhook()
     telegram_token = config.get("TELEGRAM_API_KEY")
     logger.debug("Obteniendo TELEGRAM_API_KEY: %s", telegram_token)
     if not telegram_token:
@@ -63,6 +64,36 @@ def run_telegram_mode():
         logger.info("Webhook de Telegram configurado correctamente.")
     else:
         logger.error("Error configurando webhook de Telegram: %s", resp.text)
+
+def ensure_telegram_webhook():
+    """
+    Verifica si el webhook de Telegram está correctamente configurado y lo configura si es necesario.
+    """
+    telegram_token = config.get("TELEGRAM_API_KEY")
+    public_url = config.get("NGROK_DOMAIN")
+    if not telegram_token or not public_url:
+        logger.error("Faltan TELEGRAM_API_KEY o NGROK_DOMAIN en la configuración.")
+        return
+
+    expected_webhook_url = f"{public_url}/telegram/webhook"
+    get_webhook_info_url = f"https://api.telegram.org/bot{telegram_token}/getWebhookInfo"
+    set_webhook_url = f"https://api.telegram.org/bot{telegram_token}/setWebhook"
+
+    try:
+        resp = requests.get(get_webhook_info_url, timeout=10)
+        resp.raise_for_status()
+        current_url = resp.json().get("result", {}).get("url", "")
+        if current_url == expected_webhook_url:
+            logger.info("El webhook de Telegram ya está correctamente configurado.")
+            return
+        logger.info("Configurando webhook de Telegram en: %s", expected_webhook_url)
+        resp = requests.post(set_webhook_url, json={"url": expected_webhook_url}, timeout=10)
+        if resp.ok:
+            logger.info("Webhook de Telegram configurado correctamente.")
+        else:
+            logger.error("Error configurando webhook de Telegram: %s", resp.text)
+    except Exception as e:
+        logger.error("Error verificando/configurando el webhook de Telegram: %s", e, exc_info=True)
 
 def make_handler(controller, gateway):
     "Crea un handler para responder a mensajes de texto y audios usando memoria y Gemini."
