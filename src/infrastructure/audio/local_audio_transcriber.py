@@ -4,17 +4,12 @@ Path: src/infrastructure/audio/local_audio_transcriber.py
 
 import os
 import wave
-import speech_recognition as sr
 import json
+import speech_recognition as sr
+from vosk import Model, KaldiRecognizer
 
 from pydub import AudioSegment
 from pydub.exceptions import CouldntDecodeError
-
-try:
-    from vosk import Model, KaldiRecognizer
-    VOSK_AVAILABLE = True
-except ImportError:
-    VOSK_AVAILABLE = False
 
 from src.entities.audio_transcriber import AudioTranscription
 
@@ -24,7 +19,9 @@ class LocalAudioTranscriber:
     """
 
     def __init__(self, vosk_model_path: str = "model"):
-        self.vosk_enabled = VOSK_AVAILABLE and os.path.isdir(vosk_model_path)
+        self.vosk_enabled = (
+            Model is not None and KaldiRecognizer is not None and os.path.isdir(vosk_model_path)
+        )
         if self.vosk_enabled:
             self.vosk_model = Model(vosk_model_path)
         self.recognizer = sr.Recognizer()
