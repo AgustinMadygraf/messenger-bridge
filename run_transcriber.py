@@ -9,6 +9,7 @@ class TranscriberApp:
     "Clase principal para ejecutar el proceso de transcripción de archivos OGG."
 
     def run(self):
+        "Inicia el proceso de transcripción."
         ogg_file_path = input("Please enter the path of the OGG file: ")
 
         if not os.path.isfile(ogg_file_path):
@@ -16,9 +17,10 @@ class TranscriberApp:
             return
 
         transcriber = LocalAudioTranscriber()
-        transcription = transcriber.transcribe_and_present(ogg_file_path)
+        transcription = transcriber.transcribe(ogg_file_path)
         print("Transcription Result:")
-        print(transcription)
+        print(f"Text: {transcription.text}")
+        print(f"Source: {transcription.source_path}")
 
 if __name__ == "__main__":
     app = TranscriberApp()
