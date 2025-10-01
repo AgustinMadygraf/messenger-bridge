@@ -7,6 +7,7 @@ Servidor FastAPI para manejar webhooks de Twilio y Telegram usando Rasa.
 import httpx
 from fastapi import FastAPI, Request, Response
 from fastapi.responses import HTMLResponse, PlainTextResponse
+import uvicorn
 
 from src.shared.logger import get_logger
 from src.shared.config import get_config
@@ -116,6 +117,5 @@ async def index():
 
 def run_fastapi_webhook(host="0.0.0.0", port=8443):
     "Función para ejecutar el servidor FastAPI"
-    import uvicorn
     logger.info("[Twilio] Modo respuesta. Iniciando webhook FastAPI en http://%s:%s/webhook ...", host, port)
     uvicorn.run("src.infrastructure.fastapi.fastapi_webhook:app", host=host, port=port, reload=False)

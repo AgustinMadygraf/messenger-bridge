@@ -4,6 +4,7 @@ Path: src/infrastructure/telegram_bot/telegram.py
 
 from telegram.ext import ApplicationBuilder, CommandHandler, MessageHandler, filters, ContextTypes
 from telegram import Update
+import requests
 
 from src.shared.logger import get_logger
 from src.shared.config import get_config
@@ -56,7 +57,6 @@ def run_telegram_mode():
     logger.info("Configurando webhook de Telegram en: %s", webhook_url)
 
     # Configura el webhook usando la API de Telegram
-    import requests
     set_webhook_url = f"https://api.telegram.org/bot{telegram_token}/setWebhook"
     resp = requests.post(set_webhook_url, json={"url": webhook_url}, timeout=10)
     if resp.ok:
@@ -104,11 +104,12 @@ class TelegramApp:
         self.generate_response_use_case = GenerateAgentResponseUseCase(
             self.rasa_service
         )
+        self.sender = TelegramSender(token)
 
-    def handle_message(self, chat_id: str, text: str):
+    async def handle_message(self, chat_id: str, text: str):
         "Maneja un mensaje entrante de Telegram."
         user_message = Message(to=chat_id, body=text)
         # Usa el caso de uso de Rasa para obtener la respuesta
         response_message = self.generate_response_use_case.execute(chat_id, user_message)
         # Envía la respuesta al usuario por Telegram
-        self.send_message(chat_id, response_message.body)
+        await self.sender.send_message(chat_id, response_message.body)
