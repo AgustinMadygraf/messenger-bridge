@@ -9,9 +9,6 @@ from src.shared.logger import get_logger
 from src.shared.config import get_config
 
 from src.interface_adapter.gateways.agent_gateway import AgentGateway
-from src.interface_adapter.gateways.telegram_gateway import TelegramGateway
-from src.interface_adapter.controller.telegram_controller import TelegramMessageController
-from src.interface_adapter.presenters.telegram_presenter import TelegramMessagePresenter
 from src.use_cases.generate_agent_response_use_case import GenerateAgentResponseUseCase
 from src.entities.message import Message
 
@@ -43,50 +40,61 @@ async def start(update: Update, _context: ContextTypes.DEFAULT_TYPE):
     "Maneja el comando /start."
     await update.message.reply_text("¡Hola! Soy tu bot de Telegram.")
 
-def make_handler(controller, gateway):
-    "Crea un handler para responder a mensajes de texto y audios usando memoria y Gemini."
-    async def handler(update: Update, _context: ContextTypes.DEFAULT_TYPE):
-        chat_id = update.message.chat_id
-
-        # Procesa mensajes de texto
-        if update.message.text:
-            user_message = update.message.text
-            chat_id, response_text = await controller.handle(chat_id, user_message)
-            await gateway.sender.send_message(chat_id, response_text)
-            return
-
-        # Procesa mensajes de audio (voice)
-        if update.message.voice:
-            # Informa al usuario que los mensajes de voz no son compatibles
-            await gateway.sender.send_message(chat_id, "Lo siento, actualmente no puedo procesar mensajes de voz.")
-            return
-
-        # Procesa otros tipos de mensajes si lo deseas
-        await gateway.sender.send_message(chat_id, "Sólo se aceptan mensajes de texto o audio.")
-    return handler
-
 def run_telegram_mode():
-    "Configura e inicia el bot de Telegram con Rasa."
+    "Configura el webhook de Telegram (no levanta servidor, solo setea el webhook si es necesario)."
     telegram_token = config.get("TELEGRAM_API_KEY")
+    logger.debug("Obteniendo TELEGRAM_API_KEY: %s", telegram_token)
     if not telegram_token:
         logger.error("No se encontró el token de Telegram en la configuración.")
         raise ValueError("Telegram bot token not set en environment variables.")
 
-    sender = TelegramSender(telegram_token)
-    gateway = TelegramGateway(sender)
-    presenter = TelegramMessagePresenter()
+    public_url = config.get("NGROK_DOMAIN")
+    if not public_url:
+        logger.error("No se pudo iniciar ngrok para Telegram webhook.")
+        return
+    webhook_url = f"{public_url}/telegram/webhook"
+    logger.info("Configurando webhook de Telegram en: %s", webhook_url)
 
-    rasa_url = config.get("RASA_API_URL", "http://localhost:5005/webhooks/rest/webhook")
-    rasa_service = AgentGateway(rasa_url)
-    use_case = GenerateAgentResponseUseCase(rasa_service)
+    # Configura el webhook usando la API de Telegram
+    import requests
+    set_webhook_url = f"https://api.telegram.org/bot{telegram_token}/setWebhook"
+    resp = requests.post(set_webhook_url, json={"url": webhook_url}, timeout=10)
+    if resp.ok:
+        logger.info("Webhook de Telegram configurado correctamente.")
+    else:
+        logger.error("Error configurando webhook de Telegram: %s", resp.text)
 
-    controller = TelegramMessageController(use_case, presenter)
+def make_handler(controller, gateway):
+    "Crea un handler para responder a mensajes de texto y audios usando memoria y Gemini."
+    async def handler(update: Update, _context: ContextTypes.DEFAULT_TYPE):
+        logger.debug("Mensaje recibido: %s", update)
+        if not hasattr(update, "message") or update.message is None:
+            logger.debug("Update recibido sin mensaje. Update: %s", update)
+            return
+        chat_id = update.message.chat_id
+        logger.debug("chat_id: %s", chat_id)
 
-    sender.add_command_handler("start", start)
-    gateway.add_message_handler(make_handler(controller, gateway))
+        # Procesa mensajes de texto
+        if update.message.text:
+            user_message = update.message.text
+            logger.debug("Mensaje de texto recibido: %s", user_message)
+            try:
+                chat_id, response_text = await controller.handle(chat_id, user_message)
+                logger.debug("Respuesta generada: %s", response_text)
+                await gateway.sender.send_message(chat_id, response_text)
+            except (ValueError, TypeError) as e:
+                logger.error("Error procesando mensaje de texto: %s", e, exc_info=True)
+            return
 
-    logger.info("Iniciando bot de Telegram...")
-    sender.run()
+        # Procesa mensajes de audio (voice)
+        if update.message.voice:
+            logger.debug("Mensaje de voz recibido.")
+            await gateway.sender.send_message(chat_id, "Lo siento, actualmente no puedo procesar mensajes de voz.")
+            return
+
+        logger.debug("Mensaje de tipo no soportado recibido.")
+        await gateway.sender.send_message(chat_id, "Sólo se aceptan mensajes de texto o audio.")
+    return handler
 
 class TelegramApp:
     "Aplicación principal para manejar interacciones de Telegram con Rasa."

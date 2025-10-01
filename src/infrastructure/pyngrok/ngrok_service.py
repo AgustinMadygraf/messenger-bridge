@@ -12,7 +12,7 @@ from src.shared.logger import get_logger
 
 class NgrokService:
     "Servicio para gestionar el túnel ngrok."
-    def __init__(self, port: int = 5000):
+    def __init__(self, port: int = 8443):
         self.logger = get_logger("ngrok-service")
         self.config = get_config()
         self.port = port

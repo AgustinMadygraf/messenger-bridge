@@ -5,7 +5,7 @@ Path: start_ngrok.py
 from src.infrastructure.pyngrok.ngrok_service import NgrokService
 
 if __name__ == "__main__":
-    ngrok_service = NgrokService(port=5000)
+    ngrok_service = NgrokService(port=8443)
     try:
         public_url = ngrok_service.start()
         if public_url:
