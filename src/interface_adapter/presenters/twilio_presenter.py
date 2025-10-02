@@ -22,11 +22,13 @@ class TwilioPresenter:
     def _convert_to_whatsapp_format(self, text: str) -> str:
         """
         Convierte formato markdown básico a formato WhatsApp
-        *texto* se mantiene para negrita
-        _texto_ se mantiene para cursiva
+        *texto* para negrita
+        _texto_ para cursiva
         ~texto~ para tachado
         ```texto``` para código
         """
+        # No es necesario convertir ya que WhatsApp usa la misma sintaxis
+        # para elementos básicos como negrita, cursiva y tachado
         return text
         
     def _escape_xml(self, text: str) -> str:
