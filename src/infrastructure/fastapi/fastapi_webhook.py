@@ -13,6 +13,7 @@ from src.shared.logger import get_logger
 from src.shared.config import get_config
 
 from src.interface_adapter.controller.telegram_controller import TelegramMessageController
+from src.interface_adapter.controller.twilio_controller import TwilioMessageController  # <-- Agrega esta línea
 from src.interface_adapter.gateways.agent_gateway import AgentGateway
 from src.interface_adapter.presenters.twilio_presenter import TwilioPresenter
 from src.interface_adapter.presenters.telegram_presenter import TelegramMessagePresenter
@@ -30,6 +31,7 @@ twilio_presenter = TwilioPresenter()
 telegram_presenter = TelegramMessagePresenter()
 generate_agent_bot_use_case = GenerateAgentResponseUseCase(agent_bot_service)
 telegram_controller = TelegramMessageController(generate_agent_bot_use_case, telegram_presenter)
+twilio_controller = TwilioMessageController(generate_agent_bot_use_case, twilio_presenter)  # <-- Agrega esta línea
 
 app = FastAPI()
 
@@ -60,10 +62,8 @@ async def webhook(request: Request):
         media_type=media_type
     )
 
-    # Usa el caso de uso de Rasa para obtener la respuesta
-    response_message = generate_agent_bot_use_case.execute(from_number, whatsapp_message)
-    bot_message = Message(to="Bot", body=response_message.body)
-    twiml = twilio_presenter.present(bot_message)
+    # Usa el controlador para obtener la respuesta TwiML
+    twiml = twilio_controller.handle(from_number, whatsapp_message)
     logger.info("Respuesta TwiML generada: %s", twiml)
     return Response(content=twiml, media_type="application/xml")
 
