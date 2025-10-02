@@ -1,3 +1,3 @@
 @echo off
 call .\venv\Scripts\activate.bat
-python start.py
+python run.py
