@@ -129,11 +129,11 @@ def make_handler(controller, gateway):
 
 class TelegramApp:
     "Aplicación principal para manejar interacciones de Telegram con Rasa."
-    def __init__(self, token: str, rasa_url: str):
+    def __init__(self, token: str, agent_bot_url: str):
         self.token = token
-        self.rasa_service = AgentGateway(rasa_url)
+        self.agent_bot_service = AgentGateway(agent_bot_url)
         self.generate_response_use_case = GenerateAgentResponseUseCase(
-            self.rasa_service
+            self.agent_bot_service
         )
         self.sender = TelegramSender(token)
 

@@ -13,13 +13,13 @@ from src.use_cases.generate_agent_response_use_case import GenerateAgentResponse
 
 class TwilioMessageSender:
     " Implementación de MessageSender usando Twilio y Rasa. "
-    def __init__(self, from_number, rasa_url=None):
+    def __init__(self, from_number, agent_bot_url=None):
         self.from_number = from_number
         self.logger = get_logger("twilio-bot.twilio_service")
         config = get_config()
-        self.rasa_url = rasa_url or config.get("RASA_API_URL", "http://localhost:5005/webhooks/rest/webhook")
-        self.rasa_service = AgentGateway(self.rasa_url)
-        self.rasa_use_case = GenerateAgentResponseUseCase(self.rasa_service)
+        self.agent_bot_url = agent_bot_url or config.get("RASA_API_URL", "http://localhost:5005/webhooks/rest/webhook")
+        self.agent_bot_service = AgentGateway(self.agent_bot_url)
+        self.agent_bot_use_case = GenerateAgentResponseUseCase(self.agent_bot_service)
 
     def send_message(self, message, _content_sid=None, _content_variables=None):
         "Genera respuesta con Rasa y la envía por WhatsApp usando Twilio."
@@ -27,7 +27,7 @@ class TwilioMessageSender:
         client = Client(config["ACCOUNT_SID"], config["AUTH_TOKEN"])
 
         # Genera la respuesta con Rasa
-        response_message = self.rasa_use_case.execute(message.to, message)
+        response_message = self.agent_bot_use_case.execute(message.to, message)
         text_to_send = response_message.body
 
         try:

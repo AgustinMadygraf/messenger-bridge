@@ -1,10 +1,18 @@
 # Messenger Bridge
 
 ## Descripción
-Messenger Bridge es un sistema de integración que conecta diferentes plataformas de mensajería (WhatsApp vía Twilio y Telegram) con un motor conversacional basado en Rasa (o equivalente), permitiendo mantener conversaciones inteligentes a través de distintos canales de comunicación.
+Messenger Bridge es un sistema de integración que conecta diferentes plataformas de mensajería (WhatsApp vía Twilio y Telegram) con un motor conversacional configurable (por ejemplo, Rasa, GPT4All, OpenAI, Gemini, etc.), permitiendo mantener conversaciones inteligentes a través de distintos canales de comunicación.
+
+## Relación con el repositorio motor-conversacional
+
+Este repositorio está diseñado para funcionar en conjunto con el repositorio [`AgustinMadygraf/motor-conversacional`](https://github.com/AgustinMadygraf/motor-conversacional.git), que implementa el motor conversacional configurable. Messenger Bridge actúa como puente entre las plataformas de mensajería y el motor conversacional, enviando los mensajes recibidos desde WhatsApp o Telegram al motor y devolviendo la respuesta generada al usuario final.
+
+Puedes utilizar cualquier motor compatible que implemente la API esperada (por ejemplo, Rasa, GPT4All, OpenAI, Gemini, etc.), pero se recomienda utilizar el repositorio mencionado para una integración directa y soporte completo.
+
+Para más detalles sobre la configuración y despliegue del motor conversacional, consulta la documentación del repositorio [`motor-conversacional`](https://github.com/AgustinMadygraf/motor-conversacional.git).
 
 ## Características
-- 🤖 Integración con chatbots basados en Rasa
+- 🤖 Integración con chatbots basados en Rasa, GPT4All, OpenAI, Gemini, etc.
 - 📱 Soporte para WhatsApp (vía Twilio)
 - ✈️ Soporte para Telegram
 - 🔊 Transcripción de mensajes de audio (OGG a texto)
@@ -15,7 +23,7 @@ Messenger Bridge es un sistema de integración que conecta diferentes plataforma
 - Python 3.10+
 - Cuenta en Twilio con configuración de WhatsApp Business API
 - Bot de Telegram (token generado a través de BotFather)
-- Servidor Rasa funcional
+- Motor conversacional funcional (por ejemplo, [`motor-conversacional`](https://github.com/AgustinMadygraf/motor-conversacional.git))
 - Cuenta en ngrok (recomendado el plan con dominio personalizado fijo)
 
 ## Instalación
@@ -59,6 +67,8 @@ LOG_LEVEL=INFO
 RASA_API_URL=http://localhost:5005/webhooks/rest/webhook
 NGROK_DOMAIN=tu_dominio_fijo.ngrok-free.app
 ```
+
+Asegúrate de que la URL del motor conversacional (`RASA_API_URL` o equivalente) apunte al endpoint correcto del servicio desplegado desde el repositorio [`motor-conversacional`](https://github.com/AgustinMadygraf/motor-conversacional.git).
 
 ## Uso
 

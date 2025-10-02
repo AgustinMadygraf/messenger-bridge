@@ -23,9 +23,9 @@ class CliSender:
 def run_cli_mode():
     "Configura y ejecuta el modo CLI usando Rasa."
     config = get_config()
-    rasa_url = config.get("RASA_API_URL", "http://localhost:5005/webhooks/rest/webhook")
-    rasa_service = AgentGateway(rasa_url)
-    use_case = GenerateAgentResponseUseCase(rasa_service)
+    agent_bot_url = config.get("RASA_API_URL", "http://localhost:5005/webhooks/rest/webhook")
+    agent_bot_service = AgentGateway(agent_bot_url)
+    use_case = GenerateAgentResponseUseCase(agent_bot_service)
     presenter = CliPresenter()
     controller = CliMessageController(use_case, presenter)
     sender = CliSender()

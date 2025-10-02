@@ -1,5 +1,4 @@
 venv/
 .env
 __pycache__/
-src/infrastructure/google_generativeai/system_instructions.json
-src/infrastructure/rasa/.rasa/
+docs/todo.md

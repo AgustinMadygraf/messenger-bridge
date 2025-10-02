@@ -6,8 +6,8 @@ import requests
 
 class AgentGateway:
     " Interfaz para comunicarse con un modelo Rasa."
-    def __init__(self, rasa_url: str):
-        self.rasa_url = rasa_url
+    def __init__(self, agent_bot_url: str):
+        self.agent_bot_url = agent_bot_url
 
     def get_response(self, prompt: str) -> str:
         """
@@ -18,7 +18,7 @@ class AgentGateway:
         payload = {"sender": "user", "message": prompt}
         print(f" Enviando prompt a Rasa: {prompt}")  # Depuración
         try:
-            response = requests.post(self.rasa_url, json=payload, timeout=20)
+            response = requests.post(self.agent_bot_url, json=payload, timeout=20)
             response.raise_for_status()
             data = response.json()
             print(f" Respuesta recibida: {data}")  # Depuración

@@ -25,11 +25,11 @@ config = get_config()
 TELEGRAM_TOKEN = config.get("TELEGRAM_API_KEY")
 TELEGRAM_API_URL = f"https://api.telegram.org/bot{TELEGRAM_TOKEN}/sendMessage"
 RASA_URL = config.get("RASA_API_URL", "http://localhost:5005/webhooks/rest/webhook")
-rasa_service = AgentGateway(RASA_URL)
+agent_bot_service = AgentGateway(RASA_URL)
 twilio_presenter = TwilioPresenter()
 telegram_presenter = TelegramMessagePresenter()
-generate_rasa_use_case = GenerateAgentResponseUseCase(rasa_service)
-telegram_controller = TelegramMessageController(generate_rasa_use_case, telegram_presenter)
+generate_agent_bot_use_case = GenerateAgentResponseUseCase(agent_bot_service)
+telegram_controller = TelegramMessageController(generate_agent_bot_use_case, telegram_presenter)
 
 app = FastAPI()
 
@@ -61,7 +61,7 @@ async def webhook(request: Request):
     )
 
     # Usa el caso de uso de Rasa para obtener la respuesta
-    response_message = generate_rasa_use_case.execute(from_number, whatsapp_message)
+    response_message = generate_agent_bot_use_case.execute(from_number, whatsapp_message)
     bot_message = Message(to="Bot", body=response_message.body)
     twiml = twilio_presenter.present(bot_message)
     logger.info("Respuesta TwiML generada: %s", twiml)
