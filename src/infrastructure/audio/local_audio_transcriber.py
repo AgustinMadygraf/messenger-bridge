@@ -12,13 +12,19 @@ from pydub import AudioSegment
 from pydub.exceptions import CouldntDecodeError
 
 from src.entities.audio_transcriber import AudioTranscription
+from src.use_cases.audio_transcriber_use_case import AudioTranscriberUseCase
+from src.interface_adapter.gateways.audio_transcriber_gateway import AudioTranscriberGateway
+from src.interface_adapter.presenters.audio_transcriber_presenter import AudioTranscriberPresenter
 
-class LocalAudioTranscriber:
+class LocalAudioTranscriber(AudioTranscriberUseCase):
     """
-    Clase única para transcribir audio localmente usando Vosk (offline) y Google (fallback).
+    Implementación concreta del caso de uso para transcribir audio localmente usando Vosk (offline) y Google (fallback).
+    Depende del gateway para obtener el archivo y del presenter para formatear la salida.
     """
 
-    def __init__(self, vosk_model_path: str = "model"):
+    def __init__(self, gateway: AudioTranscriberGateway, presenter: AudioTranscriberPresenter, vosk_model_path: str = "model"):
+        self.gateway = gateway
+        self.presenter = presenter
         self.vosk_enabled = (
             Model is not None and KaldiRecognizer is not None and os.path.isdir(vosk_model_path)
         )
@@ -27,16 +33,21 @@ class LocalAudioTranscriber:
         self.recognizer = sr.Recognizer()
 
     def transcribe(self, audio_file_path: str) -> AudioTranscription:
-        "Transcribe un archivo de audio OGG y devuelve un objeto AudioTranscription. "
+        "Transcribe un archivo de audio OGG y devuelve un objeto AudioTranscription."
+        # Usa el gateway para obtener la ruta real del archivo
+        audio_file_path = self.gateway.get_audio_file(audio_file_path)
+
         if not os.path.isfile(audio_file_path):
-            return AudioTranscription(text=f"El archivo {audio_file_path} no existe.", source_path=audio_file_path)
+            transcription = AudioTranscription(text=f"El archivo {audio_file_path} no existe.", source_path=audio_file_path)
+            return transcription
 
         wav_path = audio_file_path + ".wav"
         try:
             audio = AudioSegment.from_ogg(audio_file_path)
             audio.export(wav_path, format="wav")
         except (FileNotFoundError, CouldntDecodeError, OSError, ValueError, TypeError) as e:
-            return AudioTranscription(text=f"Error en la conversión: {e}", source_path=audio_file_path)
+            transcription = AudioTranscription(text=f"Error en la conversión: {e}", source_path=audio_file_path)
+            return transcription
 
         text = None
 
@@ -79,4 +90,5 @@ class LocalAudioTranscriber:
         if os.path.exists(wav_path):
             os.remove(wav_path)
 
-        return AudioTranscription(text=text, source_path=audio_file_path)
+        transcription = AudioTranscription(text=text, source_path=audio_file_path)
+        return transcription
