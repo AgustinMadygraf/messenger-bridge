@@ -74,40 +74,66 @@ async def telegram_webhook(request: Request):
     update = await request.json()
     logger.debug("[Telegram] Payload recibido: %s", update)
 
-    # Extraer chat_id, texto y entidades del mensaje
     message = update.get("message")
-    if not message or "text" not in message:
-        logger.info("[Telegram] No es un mensaje de texto. Ignorando.")
+    if not message:
+        logger.info("[Telegram] No es un mensaje válido. Ignorando.")
         return PlainTextResponse("OK", status_code=200)
 
     chat_id = message["chat"]["id"]
-    text = message["text"]
-    entities = message.get("entities", None)  # Extraer entidades si existen
 
-    # Usar el controlador actualizado que procesa entidades
-    chat_id, response_text = await telegram_controller.handle(chat_id, text, entities)
-    logger.info("[Telegram] Respuesta generada: %s", response_text)
+    # --- Manejo de mensajes de texto ---
+    if "text" in message:
+        text = message["text"]
+        entities = message.get("entities", None)
+        chat_id, response_text = await telegram_controller.handle(chat_id, text, entities)
+        logger.info("[Telegram] Respuesta generada: %s", response_text)
+        response_message = Message(to=chat_id, body=response_text)
+        formatted_response = telegram_presenter.present(response_message)
+        payload = {
+            "chat_id": chat_id,
+            **formatted_response
+        }
+        async with httpx.AsyncClient() as client:
+            resp = await client.post(TELEGRAM_API_URL, json=payload)
+            logger.debug("[Telegram] Respuesta enviada. Status: %s, Body: %s", resp.status_code, resp.text)
+        return PlainTextResponse("OK", status_code=200)
 
-    # Log de diagnóstico: longitud y preview del mensaje
-    logger.debug("[Telegram] Longitud de la respuesta: %d", len(response_text))
-    logger.debug("[Telegram] Primeros 500 caracteres: %s", response_text[:500])
+    # --- Manejo de mensajes de voz (audio) ---
+    if "voice" in message:
+        voice = message["voice"]
+        file_id = voice["file_id"]
+        mime_type = voice.get("mime_type", "audio/ogg")
+        # Obtener la URL del archivo de audio desde Telegram API
+        async with httpx.AsyncClient() as client:
+            file_resp = await client.get(
+                f"https://api.telegram.org/bot{TELEGRAM_TOKEN}/getFile?file_id={file_id}"
+            )
+            file_info = file_resp.json()
+            file_path = file_info["result"]["file_path"]
+            file_url = f"https://api.telegram.org/file/bot{TELEGRAM_TOKEN}/{file_path}"
 
-    response_message = Message(to=chat_id, body=response_text)
-    formatted_response = telegram_presenter.present(response_message)
+        # Construir el objeto Message con media_url y media_type
+        audio_message = Message(
+            to=chat_id,
+            body="[audio]",  # O puedes dejarlo vacío
+            media_url=file_url,
+            media_type=mime_type
+        )
+        # Procesar el mensaje de audio usando el controlador
+        chat_id, response_text = await telegram_controller.handle(chat_id, audio_message, None)
+        logger.info("[Telegram] Respuesta generada para audio: %s", response_text)
+        response_message = Message(to=chat_id, body=response_text)
+        formatted_response = telegram_presenter.present(response_message)
+        payload = {
+            "chat_id": chat_id,
+            **formatted_response
+        }
+        async with httpx.AsyncClient() as client:
+            resp = await client.post(TELEGRAM_API_URL, json=payload)
+            logger.debug("[Telegram] Respuesta enviada. Status: %s, Body: %s", resp.status_code, resp.text)
+        return PlainTextResponse("OK", status_code=200)
 
-    # Log de diagnóstico: mensaje formateado y longitud final
-    logger.debug("[Telegram] Longitud del mensaje formateado: %d", len(formatted_response['text']))
-    logger.debug("[Telegram] Preview mensaje formateado: %s", formatted_response['text'][:500])
-    logger.debug("[Telegram] Payload a enviar: %s", formatted_response)
-
-    payload = {
-        "chat_id": chat_id,
-        **formatted_response
-    }
-    async with httpx.AsyncClient() as client:
-        resp = await client.post(TELEGRAM_API_URL, json=payload)
-        logger.debug("[Telegram] Respuesta enviada. Status: %s, Body: %s", resp.status_code, resp.text)
-
+    logger.info("[Telegram] No es un mensaje de texto ni de voz. Ignorando.")
     return PlainTextResponse("OK", status_code=200)
 
 @app.get("/", response_class=HTMLResponse)

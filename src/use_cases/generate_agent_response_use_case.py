@@ -14,8 +14,15 @@ class GenerateAgentResponseUseCase:
     def execute(self, _conversation_id: str, user_message: Message) -> Message:
         " Genera una respuesta de Rasa para el mensaje del usuario."
         print(f"[USECASE] Mensaje recibido: {user_message.body}")
-        prompt = user_message.body
-        agent_bot_response = self.agent_bot_service.get_response(prompt)
+        
+        # Si el mensaje tiene contenido multimedia de audio, enviar el mensaje completo
+        if user_message.is_media() and user_message.media_type and "audio" in user_message.media_type:
+            agent_bot_response = self.agent_bot_service.get_response(user_message)
+        else:
+            # Mantener compatibilidad con el flujo existente para mensajes de texto
+            prompt = user_message.body
+            agent_bot_response = self.agent_bot_service.get_response(prompt)
+            
         print(f"[USECASE] Respuesta de Rasa: {agent_bot_response}")
 
         # Detecta error de conexión y responde amigablemente

@@ -9,14 +9,21 @@ class AgentGateway:
     def __init__(self, agent_bot_url: str):
         self.agent_bot_url = agent_bot_url
 
-    def get_response(self, prompt: str) -> str:
+    def get_response(self, message_or_text) -> str:
         """
         Envía el mensaje del usuario a Rasa y obtiene la respuesta.
-        :param prompt: str, mensaje del usuario.
+        :param message_or_text: Message o str, mensaje o texto directo.
         :return: str, respuesta generada por Rasa.
         """
-        payload = {"sender": "user", "message": prompt}
-        print(f" Enviando prompt a Rasa: {prompt}")  # Depuración
+        if isinstance(message_or_text, str):
+            payload = {"sender": "user", "message": message_or_text}
+        else:  # Es un objeto Message u objeto similar
+            payload = {"sender": "user", "message": message_or_text.body}
+            if hasattr(message_or_text, 'media_url') and message_or_text.media_url:
+                payload["media_url"] = message_or_text.media_url
+                payload["media_type"] = message_or_text.media_type
+        
+        print(f" Enviando payload a Rasa: {payload}")  # Depuración
         try:
             response = requests.post(self.agent_bot_url, json=payload, timeout=20)
             response.raise_for_status()
