@@ -40,27 +40,36 @@ class TelegramMessagePresenter:
         """
         Escapa los caracteres especiales de MarkdownV2 preservando los formatos.
         """
+        # Caracteres que requieren escape en MarkdownV2
         special_chars = ['_', '[', ']', '(', ')', '~', '`', '>', '#', '+', 
                         '-', '=', '|', '{', '}', '.', '!', '\\']
-        
-        result = ""
-        in_format = False
-        
-        i = 0
-        while i < len(text):
+
+        # Primero identificamos todos los pares de asteriscos para formato bold
+        format_positions = []
+        for i in range(len(text)):
             if text[i] == '*':
-                # No escapar asteriscos que son parte del formato
+                # Verificar si es parte de una lista de viñetas (bullet point)
+                # Un asterisco que es bullet point generalmente tiene espacio después
+                if i > 0 and text[i-1] == '\n' and i < len(text)-1 and text[i+1] == ' ':
+                    continue  # Ignorar asteriscos de viñetas
+                format_positions.append(i)
+        
+        # Resultado final con escapes
+        result = ""
+        in_bold = False
+        for i in range(len(text)):
+            # Si es un marcador de formato bold
+            if i in format_positions:
+                in_bold = not in_bold
                 result += '*'
-                in_format = not in_format
-            elif in_format:
-                # Dentro de formato (entre asteriscos) no escapamos
-                result += text[i]
+            # Si es un asterisco de viñeta, escaparlo
+            elif text[i] == '*' and i > 0 and text[i-1] == '\n' and i < len(text)-1 and text[i+1] == ' ':
+                result += '\\*'
+            # Para otros caracteres especiales
+            elif text[i] in special_chars:
+                result += '\\' + text[i]
+            # Caracteres normales
             else:
-                # Fuera de formato, escapamos caracteres especiales
-                if text[i] in special_chars:
-                    result += '\\' + text[i]
-                else:
-                    result += text[i]
-            i += 1
-            
+                result += text[i]
+    
         return result

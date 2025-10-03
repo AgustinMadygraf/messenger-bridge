@@ -79,7 +79,7 @@ async def telegram_webhook(request: Request):
     if not message or "text" not in message:
         logger.info("[Telegram] No es un mensaje de texto. Ignorando.")
         return PlainTextResponse("OK", status_code=200)
-    
+
     chat_id = message["chat"]["id"]
     text = message["text"]
     entities = message.get("entities", None)  # Extraer entidades si existen
