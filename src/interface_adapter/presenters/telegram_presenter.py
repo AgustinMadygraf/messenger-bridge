@@ -41,35 +41,35 @@ class TelegramMessagePresenter:
         Escapa los caracteres especiales de MarkdownV2 preservando los formatos.
         """
         # Caracteres que requieren escape en MarkdownV2
-        special_chars = ['_', '[', ']', '(', ')', '~', '`', '>', '#', '+', 
+        special_chars = ['_', '[', ']', '(', ')', '~', '`', '>', '#', '+',
                         '-', '=', '|', '{', '}', '.', '!', '\\']
 
         # Primero identificamos todos los pares de asteriscos para formato bold
         format_positions = []
-        for i in range(len(text)):
-            if text[i] == '*':
+        for i, char in enumerate(text):
+            if char == '*':
                 # Verificar si es parte de una lista de viñetas (bullet point)
                 # Un asterisco que es bullet point generalmente tiene espacio después
                 if i > 0 and text[i-1] == '\n' and i < len(text)-1 and text[i+1] == ' ':
                     continue  # Ignorar asteriscos de viñetas
                 format_positions.append(i)
-        
+
         # Resultado final con escapes
         result = ""
         in_bold = False
-        for i in range(len(text)):
+        for i, char in enumerate(text):
             # Si es un marcador de formato bold
             if i in format_positions:
                 in_bold = not in_bold
                 result += '*'
             # Si es un asterisco de viñeta, escaparlo
-            elif text[i] == '*' and i > 0 and text[i-1] == '\n' and i < len(text)-1 and text[i+1] == ' ':
+            elif char == '*' and i > 0 and text[i-1] == '\n' and i < len(text)-1 and text[i+1] == ' ':
                 result += '\\*'
             # Para otros caracteres especiales
-            elif text[i] in special_chars:
-                result += '\\' + text[i]
+            elif char in special_chars:
+                result += '\\' + char
             # Caracteres normales
             else:
-                result += text[i]
-    
+                result += char
+
         return result
