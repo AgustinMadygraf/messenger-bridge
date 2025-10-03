@@ -86,17 +86,23 @@ async def telegram_webhook(request: Request):
 
     # Usar el controlador actualizado que procesa entidades
     chat_id, response_text = await telegram_controller.handle(chat_id, text, entities)
-    
     logger.info("[Telegram] Respuesta generada: %s", response_text)
 
-    # Usar el presenter para formatear adecuadamente la respuesta
+    # Log de diagnóstico: longitud y preview del mensaje
+    logger.debug("[Telegram] Longitud de la respuesta: %d", len(response_text))
+    logger.debug("[Telegram] Primeros 500 caracteres: %s", response_text[:500])
+
     response_message = Message(to=chat_id, body=response_text)
     formatted_response = telegram_presenter.present(response_message)
-    
-    # Enviar respuesta usando la API de Telegram (asíncrono)
+
+    # Log de diagnóstico: mensaje formateado y longitud final
+    logger.debug("[Telegram] Longitud del mensaje formateado: %d", len(formatted_response['text']))
+    logger.debug("[Telegram] Preview mensaje formateado: %s", formatted_response['text'][:500])
+    logger.debug("[Telegram] Payload a enviar: %s", formatted_response)
+
     payload = {
         "chat_id": chat_id,
-        **formatted_response  # Incluye texto escapado y parse_mode
+        **formatted_response
     }
     async with httpx.AsyncClient() as client:
         resp = await client.post(TELEGRAM_API_URL, json=payload)
