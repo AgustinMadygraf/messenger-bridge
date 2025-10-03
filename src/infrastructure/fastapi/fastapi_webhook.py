@@ -13,7 +13,7 @@ from src.shared.logger import get_logger
 from src.shared.config import get_config
 
 from src.interface_adapter.controller.telegram_controller import TelegramMessageController
-from src.interface_adapter.controller.twilio_controller import TwilioMessageController  # <-- Agrega esta línea
+from src.interface_adapter.controller.twilio_controller import TwilioMessageController
 from src.interface_adapter.gateways.agent_gateway import AgentGateway
 from src.interface_adapter.presenters.twilio_presenter import TwilioPresenter
 from src.interface_adapter.presenters.telegram_presenter import TelegramMessagePresenter
@@ -31,7 +31,7 @@ twilio_presenter = TwilioPresenter()
 telegram_presenter = TelegramMessagePresenter()
 generate_agent_bot_use_case = GenerateAgentResponseUseCase(agent_bot_service)
 telegram_controller = TelegramMessageController(generate_agent_bot_use_case, telegram_presenter)
-twilio_controller = TwilioMessageController(generate_agent_bot_use_case, twilio_presenter)  # <-- Agrega esta línea
+twilio_controller = TwilioMessageController(generate_agent_bot_use_case, twilio_presenter)
 
 app = FastAPI()
 
@@ -74,23 +74,29 @@ async def telegram_webhook(request: Request):
     update = await request.json()
     logger.debug("[Telegram] Payload recibido: %s", update)
 
-    # Extraer chat_id y texto del mensaje
+    # Extraer chat_id, texto y entidades del mensaje
     message = update.get("message")
     if not message or "text" not in message:
         logger.info("[Telegram] No es un mensaje de texto. Ignorando.")
         return PlainTextResponse("OK", status_code=200)
+    
     chat_id = message["chat"]["id"]
     text = message["text"]
+    entities = message.get("entities", None)  # Extraer entidades si existen
 
-    # Procesar mensaje usando el controlador
-    response_message = telegram_controller.use_case.execute(chat_id, Message(to=chat_id, body=text))
-    response_text = response_message.body.strip() if response_message.body else "No tengo una respuesta en este momento."
+    # Usar el controlador actualizado que procesa entidades
+    chat_id, response_text = await telegram_controller.handle(chat_id, text, entities)
+    
     logger.info("[Telegram] Respuesta generada: %s", response_text)
 
+    # Usar el presenter para formatear adecuadamente la respuesta
+    response_message = Message(to=chat_id, body=response_text)
+    formatted_response = telegram_presenter.present(response_message)
+    
     # Enviar respuesta usando la API de Telegram (asíncrono)
     payload = {
         "chat_id": chat_id,
-        "text": response_text
+        **formatted_response  # Incluye texto escapado y parse_mode
     }
     async with httpx.AsyncClient() as client:
         resp = await client.post(TELEGRAM_API_URL, json=payload)
