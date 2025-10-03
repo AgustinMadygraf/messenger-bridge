@@ -93,9 +93,6 @@ El proyecto sigue principios de arquitectura limpia (Clean Architecture):
   - **presenters/**: Formateo de respuestas 
   - **gateways/**: Interfaces para servicios externos
 - **infrastructure/**: Implementaciones concretas para cada plataforma
-  - **cli/**: Implementación de consola de comandos
   - **fastapi/**: Implementación de webhooks con FastAPI
   - **pyngrok/**: Configuración de túneles ngrok
-  - **telegram_bot/**: Implementación del bot de Telegram
-  - **twilio/**: Implementación de WhatsApp con Twilio
 - **shared/**: Utilidades compartidas (configuración, logging)
