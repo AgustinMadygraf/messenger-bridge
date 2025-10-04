@@ -37,6 +37,7 @@ cd messenger-bridge
 2. Crear y activar entorno virtual:
 ```bash
 python -m venv venv
+Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope Process
 # En Windows:
 .\venv\Scripts\activate
 # En Linux/Mac:
@@ -45,6 +46,7 @@ source venv/bin/activate
 
 3. Instalar dependencias:
 ```bash
+python.exe -m pip install --upgrade pip
 pip install -r requirements.txt
 ```
 
