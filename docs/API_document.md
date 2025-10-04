@@ -71,6 +71,26 @@ Recibe actualizaciones del bot de Telegram configurado.
   }
   ```
 
+  > **Nota:** Si el mensaje es de voz, el campo `"voice"` estará presente en lugar de `"text"`. Ejemplo:
+  ```json
+  {
+    "update_id": 123456789,
+    "message": {
+      "message_id": 123,
+      "from": { "id": 12345678, "first_name": "Usuario" },
+      "chat": { "id": 12345678, "type": "private" },
+      "date": 1632154823,
+      "voice": {
+        "file_id": "AwACAgEAAxkBA...",
+        "duration": 4,
+        "mime_type": "audio/ogg",
+        "file_unique_id": "AgADrQUAAgeyAAFH",
+        "file_size": 97280
+      }
+    }
+  }
+  ```
+
 #### Respuesta
 - **Content-Type**: `text/plain`
 - **Cuerpo**: `OK` (la respuesta real se envía asincrónicamente a la API de Telegram)
@@ -93,8 +113,10 @@ No requiere parámetros.
 ## Integración con el motor conversacional
 
 ### Formato de solicitud al motor conversacional
+
 El sistema utiliza `AgentGateway` para comunicarse con el motor configurado (Rasa, GPT4All, OpenAI, Gemini, etc.):
 
+#### Para mensajes de texto:
 ```json
 {
   "sender": "user",
@@ -102,7 +124,19 @@ El sistema utiliza `AgentGateway` para comunicarse con el motor configurado (Ras
 }
 ```
 
+#### Para mensajes de audio:
+```json
+{
+  "sender": "user",
+  "message": "[audio]",
+  "media_url": "https://api.telegram.org/file/bot<token>/<file_path>",
+  "media_type": "audio/ogg"
+}
+```
+> El campo `media_url` contiene la URL del archivo de audio y `media_type` el tipo MIME. El motor conversacional debe ser capaz de procesar estos campos para manejar mensajes de voz.
+
 ### Formato de respuesta del motor conversacional
+
 La API del motor conversacional debe devolver una lista de mensajes en el siguiente formato:
 
 ```json
@@ -116,13 +150,18 @@ La API del motor conversacional debe devolver una lista de mensajes en el siguie
 
 ## Procesamiento de audio
 
-El sistema incluye capacidades de transcripción de audio a través de `AudioTranscriberUseCase` con implementación en `LocalAudioTranscriber`.
+El sistema soporta dos modos:
+
+- **Transcripción local:** (usando `AudioTranscriberUseCase` y `LocalAudioTranscriber`)
+- **Procesamiento remoto:** El archivo de audio o su URL se envía al motor conversacional, que se encarga de la transcripción y respuesta.
+
+Actualmente, el flujo recomendado es enviar la URL del audio al motor conversacional, centralizando el procesamiento en el backend conversacional.
 
 ### Formatos de audio soportados
 - OGG
 - WAV
 - MP3
-- Otros formatos compatibles con `pydub`
+- Otros formatos compatibles con `pydub` (para transcripción local) o soportados por el motor conversacional
 
 ## Manejo de errores
 
@@ -142,7 +181,7 @@ curl -X POST http://localhost:8443/twilio/webhook \
   -d "NumMedia=0"
 ```
 
-### Enviar mensaje a Telegram Webhook
+### Enviar mensaje de voz a Telegram Webhook
 
 ```bash
 curl -X POST http://localhost:8443/telegram/webhook \
@@ -154,13 +193,18 @@ curl -X POST http://localhost:8443/telegram/webhook \
       "from": {"id": 12345678, "first_name": "Usuario"},
       "chat": {"id": 12345678, "type": "private"},
       "date": 1632154823,
-      "text": "Hola"
+      "voice": {
+        "file_id": "AwACAgEAAxkBA...",
+        "duration": 4,
+        "mime_type": "audio/ogg"
+      }
     }
   }'
 ```
 
 ## Notas adicionales
 
-- La API está diseñada siguiendo los principios de Clean Architecture
-- Para configurar webhooks de Telegram, utilice el script set_telegram_webhook.py
-- El manejo de archivos multimedia está implementado para archivos de audio
+- La API está diseñada siguiendo los principios de Clean Architecture.
+- Para configurar webhooks de Telegram, utilice el script `set_telegram_webhook.py`.
+- El manejo de archivos multimedia está implementado para archivos de audio, enviando la URL al motor conversacional para su procesamiento.
+- El motor conversacional debe implementar el soporte para el campo `media_url` y `media_type` para procesar mensajes de voz correctamente.
