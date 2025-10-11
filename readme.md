@@ -63,7 +63,6 @@ El proyecto sigue principios de **Clean Architecture**, facilitando pruebas, man
 
 Estas son algunas mejoras y nuevas funcionalidades que planeamos incorporar:
 
-- [ ] Transcripción automática de mensajes de audio
 - [ ] Almacenamiento de conversaciones con MongoDB
 - [ ] Soporte para Discord como nuevo canal de mensajería
 - [ ] Panel web para administración y monitoreo de conversaciones
