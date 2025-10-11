@@ -22,7 +22,7 @@ class AgentGateway:
             if hasattr(message_or_text, 'media_url') and message_or_text.media_url:
                 payload["media_url"] = message_or_text.media_url
                 payload["media_type"] = message_or_text.media_type
-        
+
         print(f" Enviando payload a Rasa: {payload}")  # Depuración
         try:
             response = requests.post(self.agent_bot_url, json=payload, timeout=20)

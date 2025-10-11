@@ -9,4 +9,5 @@ class AudioTranscriberGateway(ABC):
     "Puerto para la transcripción de audio."
     @abstractmethod
     def transcribe(self, audio_file_path: str) -> AudioTranscription:
-        pass
+        "Transcribe el archivo de audio especificado"
+        pass # pylint: disable=unnecessary-pass

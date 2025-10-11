@@ -6,18 +6,20 @@ Servidor FastAPI para manejar webhooks de Twilio y Telegram usando Rasa.
 
 import httpx
 from fastapi import FastAPI, Request, Response
-from fastapi.responses import HTMLResponse, PlainTextResponse
+from fastapi.responses import PlainTextResponse
 import uvicorn
 
 from src.shared.logger import get_logger
 from src.shared.config import get_config
 
+from src.infrastructure.audio.local_audio_transcriber import LocalAudioTranscriber
 from src.interface_adapter.controller.telegram_controller import TelegramMessageController
 from src.interface_adapter.controller.twilio_controller import TwilioMessageController
 from src.interface_adapter.gateways.agent_gateway import AgentGateway
 from src.interface_adapter.presenters.twilio_presenter import TwilioPresenter
 from src.interface_adapter.presenters.telegram_presenter import TelegramMessagePresenter
 from src.use_cases.generate_agent_response_use_case import GenerateAgentResponseUseCase
+from src.use_cases.audio_transcriber_use_case import AudioTranscriberUseCase
 from src.entities.message import Message
 
 logger = get_logger("fastapi-webhook")
@@ -29,7 +31,17 @@ RASA_URL = config.get("RASA_API_URL", "http://localhost:5005/webhooks/rest/webho
 agent_bot_service = AgentGateway(RASA_URL)
 twilio_presenter = TwilioPresenter()
 telegram_presenter = TelegramMessagePresenter()
-generate_agent_bot_use_case = GenerateAgentResponseUseCase(agent_bot_service)
+
+# Instanciar el transcriptor de audio y su caso de uso
+local_audio_transcriber = LocalAudioTranscriber()
+audio_transcriber_use_case = AudioTranscriberUseCase(local_audio_transcriber)
+
+# Inyectar el caso de uso de transcripción en GenerateAgentResponseUseCase
+generate_agent_bot_use_case = GenerateAgentResponseUseCase(
+    agent_bot_service,
+    audio_transcriber_use_case=audio_transcriber_use_case
+)
+
 telegram_controller = TelegramMessageController(generate_agent_bot_use_case, telegram_presenter)
 twilio_controller = TwilioMessageController(generate_agent_bot_use_case, twilio_presenter)
 
@@ -136,22 +148,11 @@ async def telegram_webhook(request: Request):
     logger.info("[Telegram] No es un mensaje de texto ni de voz. Ignorando.")
     return PlainTextResponse("OK", status_code=200)
 
-@app.get("/", response_class=HTMLResponse)
+@app.get("/")
 async def index():
-    "Página de inicio simple con instrucciones"
-    html = """
-    <!DOCTYPE html>
-    <html>
-    <head>
-        <title>Twilio Bot QR</title>
-    </head>
-    <body>
-        <h2>Escanea este QR para conectar tu WhatsApp</h2>
-        <img src="/static/qr.svg" alt="QR WhatsApp" style="width:300px;height:300px;">
-    </body>
-    </html>
-    """
-    return html
+    "Página de inicio simple para verificar que el servidor está funcionando."
+    return {"message": "Bienvenido al webhook de FastAPI"}
+
 
 def run_fastapi_webhook(host="0.0.0.0", port=8443):
     "Función para ejecutar el servidor FastAPI"

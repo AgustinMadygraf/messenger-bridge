@@ -11,7 +11,7 @@ class TwilioMessageController:
         self.presenter = presenter
 
     def handle(self, from_number, user_message: Message):
-        "Procesa el mensaje entrante y devuelve la respuesta formateada para Twilio."
+        "Maneja un mensaje entrante de Twilio y genera una respuesta usando el caso de uso."
         response_message = self.use_case.execute(from_number, user_message)
         bot_message = Message(to="Bot", body=response_message.body)
         twiml = self.presenter.present(bot_message)

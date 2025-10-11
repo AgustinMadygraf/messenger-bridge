@@ -3,6 +3,8 @@ Path: src/infrastructure/audio/local_audio_transcriber.py
 """
 
 import os
+import tempfile
+import requests
 
 from src.shared.logger import get_logger
 
@@ -83,3 +85,15 @@ class LocalAudioTranscriber(AudioTranscriberGateway):
             logger.error("No se tienen permisos para acceder al archivo: %s", e)
         except OSError as e:
             logger.error("Ocurrió un error de sistema durante la transcripción: %s", e)
+
+def download_audio_from_url(url: str, suffix: str = ".ogg") -> str:
+    """
+    Descarga un archivo de audio desde una URL y lo guarda temporalmente.
+    Devuelve la ruta local del archivo descargado.
+    Lanza excepción si falla la descarga.
+    """
+    with tempfile.NamedTemporaryFile(delete=False, suffix=suffix) as tmp_file:
+        response = requests.get(url, timeout=20)
+        response.raise_for_status()
+        tmp_file.write(response.content)
+        return tmp_file.name

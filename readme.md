@@ -67,6 +67,7 @@ Estas son algunas mejoras y nuevas funcionalidades que planeamos incorporar:
 - [ ] Almacenamiento de conversaciones con MongoDB
 - [ ] Soporte para Discord como nuevo canal de mensajería
 - [ ] Panel web para administración y monitoreo de conversaciones
+- [ ] Seteo automático de webhook para telegram
 
 Si tienes ideas o sugerencias, ¡no dudes en compartirlas!
 

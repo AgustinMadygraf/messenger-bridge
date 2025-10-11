@@ -10,20 +10,20 @@ class TelegramMessageController:
         self.use_case = use_case
         self.presenter = presenter
 
-    async def handle(self, chat_id, text, entities=None):
-        "Maneja un mensaje entrante de Telegram y genera una respuesta usando Rasa."
-        # Procesar entidades para preservar formato
-        formatted_text = self._apply_markdown_formatting(text, entities) if entities else text
-        print(f"[CONTROLLER] chat_id: {chat_id}, texto con formato: {formatted_text}")
+    async def handle(self, chat_id, user_message_or_text, entities=None):
+        "Maneja un mensaje entrante de Telegram y genera una respuesta usando el caso de uso."
+        if isinstance(user_message_or_text, Message):
+            user_message = user_message_or_text
+        else:
+            formatted_text = self._apply_markdown_formatting(user_message_or_text, entities) if entities else user_message_or_text
+            user_message = Message(to=chat_id, body=formatted_text)
 
-        user_message = Message(to=chat_id, body=formatted_text)
         response_message = self.use_case.execute(chat_id, user_message)
-        print(f"[CONTROLLER] Respuesta final: {response_message.body}")
         response_text = response_message.body.strip() if response_message.body else "No tengo una respuesta en este momento."
         return chat_id, response_text
 
     def _apply_markdown_formatting(self, text, entities):
-        """Convierte las entidades de Telegram a formato Markdown."""
+        "Convierte las entidades de Telegram a formato Markdown."
         if not entities:
             return text
 
