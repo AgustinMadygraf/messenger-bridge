@@ -35,7 +35,7 @@ class GenerateAgentResponseUseCase:
             try:
                 auth = HTTPBasicAuth(config['ACCOUNT_SID'], config['AUTH_TOKEN'])
                 with tempfile.NamedTemporaryFile(delete=False, suffix=".ogg") as tmp_file:
-                    audio_resp = requests.get(user_message.media_url, auth=auth, timeout=20)
+                    audio_resp = requests.get(user_message.media_url, auth=auth, timeout=60)
                     audio_resp.raise_for_status()
                     tmp_file.write(audio_resp.content)
                     tmp_file_path = tmp_file.name

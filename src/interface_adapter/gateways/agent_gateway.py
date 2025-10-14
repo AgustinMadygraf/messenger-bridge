@@ -25,7 +25,7 @@ class AgentGateway:
 
         print(f" Enviando payload a Rasa: {payload}")  # Depuración
         try:
-            response = requests.post(self.agent_bot_url, json=payload, timeout=20)
+            response = requests.post(self.agent_bot_url, json=payload, timeout=60)
             response.raise_for_status()
             data = response.json()
             print(f" Respuesta recibida: {data}")  # Depuración

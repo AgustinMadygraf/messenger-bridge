@@ -93,7 +93,7 @@ def download_audio_from_url(url: str, suffix: str = ".ogg") -> str:
     Lanza excepción si falla la descarga.
     """
     with tempfile.NamedTemporaryFile(delete=False, suffix=suffix) as tmp_file:
-        response = requests.get(url, timeout=20)
+        response = requests.get(url, timeout=60)
         response.raise_for_status()
         tmp_file.write(response.content)
         return tmp_file.name
