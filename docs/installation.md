@@ -129,3 +129,19 @@ Para integrar con el repositorio [`rasa-gemini-bot`](https://github.com/AgustinM
 1. Configura y ejecuta el motor conversacional según sus instrucciones
 2. Asegúrate de que la URL configurada en `RASA_API_URL` apunte al endpoint correcto
 3. Verifica que el formato de mensajes sea compatible entre ambos sistemas
+
+
+
+### instalación de ffmpeg con Winget para Windows 11
+
+```
+# Buscar el paquete para confirmar ID
+winget search ffmpeg
+
+# Instalar (ID exacto)
+winget install -e --id Gyan.FFmpeg
+
+# Verificar
+ffmpeg -version
+where ffmpeg
+```
