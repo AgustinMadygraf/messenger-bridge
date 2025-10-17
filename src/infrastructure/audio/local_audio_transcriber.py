@@ -24,8 +24,8 @@ class LocalAudioTranscriber(AudioTranscriberGateway):
         self.speech_recognition_transcriber = SpeechRecognitionTranscriber()
 
     def transcribe(self, audio_file_path: str) -> AudioTranscription:
-        "Transcribe el archivo de audio especificado"
-        logger.info("Iniciando transcripción para: %s", audio_file_path)
+        "Transcribe el archivo de audio especificado usando Google Speech Recognition"
+        logger.info("Iniciando transcripción con Google Speech Recognition para: %s", audio_file_path)
         if not os.path.isfile(audio_file_path):
             logger.error("El archivo %s no existe.", audio_file_path)
             return AudioTranscription(
@@ -48,14 +48,8 @@ class LocalAudioTranscriber(AudioTranscriberGateway):
                 source_path=audio_file_path
             )
 
-        # Intentar con Vosk (offline)
-        text = None
-        if self.vosk_transcriber.vosk_enabled:
-            text = self.vosk_transcriber.transcribe(wav_path)
-
-        # Si Vosk falla o no está disponible, usar SpeechRecognitionTranscriber (Google)
-        if not text or (isinstance(text, str) and text.startswith("Error usando Vosk")):
-            text = self.speech_recognition_transcriber.transcribe(wav_path, language="es-ES")
+        # Usar directamente SpeechRecognitionTranscriber (Google)
+        text = self.speech_recognition_transcriber.transcribe(wav_path, language="es-ES")
 
         if os.path.exists(wav_path):
             try:
