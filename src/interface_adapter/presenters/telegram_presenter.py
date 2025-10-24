@@ -6,35 +6,42 @@ from src.entities.message import Message
 
 class TelegramMessagePresenter:
     "Presenter para formatear mensajes de Telegram con soporte para Markdown V2."
-    def present(self, message: Message) -> dict:
+    def present(self, message: Message) -> list:
         """
         Presenta la respuesta escapando correctamente para MarkdownV2.
-        Retorna un diccionario compatible con la API de Telegram.
+        Si el texto es muy largo, lo divide en partes de hasta 4096 caracteres.
+        Retorna una lista de diccionarios compatibles con la API de Telegram.
         """
-        # Primero convertimos al formato de Telegram y luego escapamos
-        telegram_format = self._convert_to_telegram_markdown(message.body)
-        escaped_text = self._escape_markdown_v2(telegram_format)
-        return {
-            "text": escaped_text,
-            "parse_mode": "MarkdownV2"
-        }
+        telegram_format = self._convert_to_telegram_markdown_v2(message.body)
+        MAX_LEN = 4096
+        parts = [telegram_format[i:i+MAX_LEN] for i in range(0, len(telegram_format), MAX_LEN)]
+        return [
+            {
+                "text": part,
+                "parse_mode": "MarkdownV2"
+            }
+            for part in parts
+        ]
 
-    def _convert_to_telegram_markdown(self, text: str) -> str:
+
+    def _convert_to_telegram_markdown_v2(self, text: str) -> str:
         """
-        Convierte el formato markdown estándar al formato específico de Telegram MarkdownV2.
+        Convierte el formato markdown estándar (**bold**, *italic*) a Telegram MarkdownV2 y escapa caracteres especiales.
         """
-        # Convertir **texto** (markdown común) a *texto* (Telegram)
-        result = ""
-        i = 0
-        while i < len(text):
-            # Si encontramos '**', lo reemplazamos por '*' para formato de Telegram
-            if i < len(text) - 1 and text[i:i+2] == "**":
-                result += "*"
-                i += 2
-            else:
-                result += text[i]
-                i += 1
-        return result
+        import re
+
+        # 1. Convertir **bold** a *bold* y *italic* a _italic_
+        text = re.sub(r'\*\*(.+?)\*\*', r'*\1*', text)
+        text = re.sub(r'\*(?!\*)([^*]+?)\*(?!\*)', r'_\1_', text)
+
+        # 2. Escapar todos los caracteres especiales de MarkdownV2 excepto * y _
+        # (ya que los usamos para formato)
+        special_chars = r'[\[\]\(\)~`>#+\-=|{}\.!]'
+        def escape(match):
+            return '\\' + match.group(0)
+        text = re.sub(special_chars, escape, text)
+
+        return text
 
     def _escape_markdown_v2(self, text: str) -> str:
         """

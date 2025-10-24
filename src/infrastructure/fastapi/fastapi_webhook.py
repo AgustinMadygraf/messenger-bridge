@@ -100,14 +100,20 @@ async def telegram_webhook(request: Request):
         chat_id, response_text = await telegram_controller.handle(chat_id, text, entities)
         logger.info("[Telegram] Respuesta generada: %s", response_text)
         response_message = Message(to=chat_id, body=response_text)
-        formatted_response = telegram_presenter.present(response_message)
-        payload = {
-            "chat_id": chat_id,
-            **formatted_response
-        }
+        formatted_responses = telegram_presenter.present(response_message)
+        if not isinstance(formatted_responses, list):
+            formatted_responses = [formatted_responses]
+        payloads = [
+            {
+                "chat_id": chat_id,
+                **resp
+            }
+            for resp in formatted_responses
+        ]
         async with httpx.AsyncClient() as client:
-            resp = await client.post(TELEGRAM_API_URL, json=payload)
-            logger.debug("[Telegram] Respuesta enviada. Status: %s, Body: %s", resp.status_code, resp.text)
+            for payload in payloads:
+                resp = await client.post(TELEGRAM_API_URL, json=payload)
+                logger.debug("[Telegram] Respuesta enviada. Status: %s, Body: %s", resp.status_code, resp.text)
         return PlainTextResponse("OK", status_code=200)
 
     # --- Manejo de mensajes de voz (audio) ---
