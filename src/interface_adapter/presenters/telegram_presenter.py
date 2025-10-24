@@ -15,13 +15,15 @@ class TelegramMessagePresenter:
         telegram_format = self._convert_to_telegram_markdown_v2(message.body)
         MAX_LEN = 4096
         parts = [telegram_format[i:i+MAX_LEN] for i in range(0, len(telegram_format), MAX_LEN)]
-        return [
-            {
-                "text": part,
+        total = len(parts)
+        result = []
+        for idx, part in enumerate(parts, start=1):
+            prefix = f"\\-\\-mensaje {idx} de {total}\\-\\-\n"  # Escapa los guiones
+            result.append({
+                "text": prefix + part,
                 "parse_mode": "MarkdownV2"
-            }
-            for part in parts
-        ]
+            })
+        return result
 
 
     def _convert_to_telegram_markdown_v2(self, text: str) -> str:

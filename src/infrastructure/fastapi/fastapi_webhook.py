@@ -8,6 +8,7 @@ import httpx
 from fastapi import FastAPI, Request, Response
 from fastapi.responses import PlainTextResponse
 import uvicorn
+import asyncio
 
 from src.shared.logger import get_logger
 from src.shared.config import get_config
@@ -114,6 +115,7 @@ async def telegram_webhook(request: Request):
             for payload in payloads:
                 resp = await client.post(TELEGRAM_API_URL, json=payload)
                 logger.debug("[Telegram] Respuesta enviada. Status: %s, Body: %s", resp.status_code, resp.text)
+                await asyncio.sleep(3)  # <-- Delay de 3 segundos entre mensajes
         return PlainTextResponse("OK", status_code=200)
 
     # --- Manejo de mensajes de voz (audio) ---
