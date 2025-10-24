@@ -18,9 +18,13 @@ class TelegramMessagePresenter:
         total = len(parts)
         result = []
         for idx, part in enumerate(parts, start=1):
-            prefix = f"\\-\\-mensaje {idx} de {total}\\-\\-\n"  # Escapa los guiones
+            if total > 1:
+                prefix = f"\\-\\-mensaje {idx} de {total}\\-\\-\n"
+                text = prefix + part
+            else:
+                text = part
             result.append({
-                "text": prefix + part,
+                "text": text,
                 "parse_mode": "MarkdownV2"
             })
         return result
