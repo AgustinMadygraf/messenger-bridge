@@ -32,4 +32,5 @@ def get_logger(name="twilio-bot"):
         handler.setFormatter(FlaskStyleFormatter())
         logger.addHandler(handler)
         logger.setLevel(getattr(logging, log_level, logging.DEBUG))
+        logger.propagate = False  # <--- Evita duplicación de logs
     return logger

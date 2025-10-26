@@ -1,8 +1,7 @@
 """
 Path: src/infrastructure/fastapi/fastapi_webhook.py
-
-Servidor FastAPI para manejar webhooks de Twilio y Telegram usando Rasa.
 """
+
 
 import os
 import asyncio
@@ -11,6 +10,7 @@ import httpx
 from fastapi import FastAPI, Request, Response
 from fastapi.responses import PlainTextResponse
 import uvicorn
+import requests
 
 from src.shared.logger import get_logger
 from src.shared.config import get_config
@@ -27,11 +27,21 @@ from src.entities.message import Message
 
 logger = get_logger("fastapi-webhook")
 
+
 config = get_config()
 TELEGRAM_TOKEN = config.get("TELEGRAM_API_KEY")
 TELEGRAM_API_URL = f"https://api.telegram.org/bot{TELEGRAM_TOKEN}/sendMessage"
 RASA_URL = config.get("RASA_API_URL", "http://localhost:5005/webhooks/rest/webhook")
-agent_bot_service = AgentGateway(RASA_URL)
+
+# Implementación concreta de HttpClient usando requests
+class RequestsHttpClient:
+    "Implementación de HttpClient usando la librería requests."
+    def post(self, url: str, json: dict, timeout: int = 60):
+        "Envía una solicitud POST usando requests."
+        return requests.post(url, json=json, timeout=timeout)
+
+http_client = RequestsHttpClient()
+agent_bot_service = AgentGateway(RASA_URL, http_client=http_client)
 twilio_presenter = TwilioPresenter()
 telegram_presenter = TelegramMessagePresenter()
 
