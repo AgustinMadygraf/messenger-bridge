@@ -4,11 +4,13 @@ Path: src/infrastructure/fastapi/fastapi_webhook.py
 Servidor FastAPI para manejar webhooks de Twilio y Telegram usando Rasa.
 """
 
+import os
+import asyncio
+import tempfile
 import httpx
 from fastapi import FastAPI, Request, Response
 from fastapi.responses import PlainTextResponse
 import uvicorn
-import asyncio
 
 from src.shared.logger import get_logger
 from src.shared.config import get_config
@@ -132,6 +134,26 @@ async def telegram_webhook(request: Request):
             file_path = file_info["result"]["file_path"]
             file_url = f"https://api.telegram.org/file/bot{TELEGRAM_TOKEN}/{file_path}"
 
+            # Descargar el archivo de audio localmente
+            audio_resp = await client.get(file_url)
+            tmp_file_path = None
+            try:
+                with tempfile.NamedTemporaryFile(delete=False, suffix=".ogg") as tmp_file:
+                    tmp_file.write(audio_resp.content)
+                    tmp_file_path = tmp_file.name
+
+                # Transcribir el audio usando el caso de uso de transcripción
+                transcription = audio_transcriber_use_case.transcribe(tmp_file_path)
+                os.remove(tmp_file_path)
+            except (httpx.HTTPError, OSError, asyncio.TimeoutError) as e:
+                transcription = None
+                logger.error("[Telegram] Error al descargar/transcribir audio: %s", e)
+
+        if transcription and not transcription.is_empty():
+            transcribed_text = transcription.text
+        else:
+            transcribed_text = "[No se pudo transcribir el audio. Enviando audio original.]"
+
         # Construir el objeto Message con media_url y media_type
         audio_message = Message(
             to=chat_id,
@@ -139,8 +161,8 @@ async def telegram_webhook(request: Request):
             media_url=file_url,
             media_type=mime_type
         )
-        # Procesar el mensaje de audio usando el controlador
-        chat_id, response_text = await telegram_controller.handle(chat_id, audio_message, None)
+        # Procesar el mensaje de audio usando el controlador, pasando el texto transcripto
+        chat_id, response_text = await telegram_controller.handle(chat_id, audio_message, None, transcribed_text=transcribed_text)
         logger.info("[Telegram] Respuesta generada para audio: %s", response_text)
         response_message = Message(to=chat_id, body=response_text)
         formatted_response = telegram_presenter.present(response_message)
