@@ -20,11 +20,13 @@ class TelegramMessagePresenter:
 
     def present(self, message: Message) -> list:
         "Presenta la respuesta escapando correctamente para MarkdownV2."
-        logger.debug("Texto original: %s", message.body)
+        # Limita la longitud de los textos logueados
+        logger.debug("Texto original: %s", message.body[:120] + ("..." if len(message.body) > 120 else ""))
         telegram_format = self.converter.convert(message.body)
-        logger.info("Texto convertido: %s", telegram_format)
+        logger.info("Texto convertido: %s", telegram_format[:120] + ("..." if len(telegram_format) > 120 else ""))
         parts = self.splitter.split(telegram_format, 4096)
         result = []
+        error_logged = False
         for part in parts:
             try:
                 self.validator.validate(part)
@@ -33,7 +35,9 @@ class TelegramMessagePresenter:
                     "parse_mode": "MarkdownV2"
                 })
             except ValueError as e:
-                logger.error("MarkdownV2 desbalanceado: %s", e)
+                if not error_logged:
+                    logger.error("MarkdownV2 desbalanceado: %s", e)
+                    error_logged = True
                 # Devuelve el texto sin formato si está desbalanceado
                 result.append({
                     "text": part.replace("*", "").replace("_", ""),
