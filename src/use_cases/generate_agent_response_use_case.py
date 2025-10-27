@@ -4,9 +4,11 @@ Path: src/use_cases/generate_agent_response_use_case.py
 Caso de uso para generar respuesta con Rasa.
 """
 
-
+from src.shared.logger import get_logger
 
 from src.entities.message import Message
+
+logger = get_logger("generate-agent-response-use-case")
 
 class GenerateAgentResponseUseCase:
     "Orquesta la generación de respuestas usando el servicio Rasa."
@@ -17,7 +19,7 @@ class GenerateAgentResponseUseCase:
 
     def execute(self, _conversation_id: str, user_message: Message, prompt: str = None) -> Message:
         "Genera una respuesta para el mensaje del usuario. El prompt puede ser texto transcripto si el mensaje es de audio."
-        print(f"[USECASE] Mensaje recibido: {user_message.body}")
+        logger.debug("[USECASE] Mensaje recibido: %s", user_message.body)
 
         # Si se provee un prompt (texto transcripto), usarlo. Si no, usar el body del mensaje.
         if prompt is not None:
@@ -25,7 +27,7 @@ class GenerateAgentResponseUseCase:
         else:
             agent_bot_response = self.agent_bot_service.get_response(user_message.body)
 
-        print(f"[USECASE] Respuesta de Rasa: {agent_bot_response}")
+        logger.debug("[USECASE] Respuesta de Rasa: %s", agent_bot_response)
 
         if isinstance(agent_bot_response, str) and "Error al comunicarse con Rasa" in agent_bot_response:
             friendly_message = (

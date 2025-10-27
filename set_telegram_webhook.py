@@ -2,11 +2,27 @@
 Path: set_telegram_webhook.py
 """
 
+import argparse
+import os
 import requests
 
 from src.shared.config import get_config
 from src.shared.logger import get_logger
 
+def configure_log_level_from_args():
+    "Configura el nivel de log desde los argumentos de línea de comandos."
+    parser = argparse.ArgumentParser(description="Configura el webhook de Telegram usando la URL pública de ngrok.")
+    parser.add_argument("--verbose", action="store_true", help="Muestra todos los mensajes de log (DEBUG)")
+    parser.add_argument("--quiet", action="store_true", help="Muestra solo errores y advertencias")
+    args, _ = parser.parse_known_args()
+    if args.verbose:
+        os.environ["LOG_LEVEL"] = "DEBUG"
+    elif args.quiet:
+        os.environ["LOG_LEVEL"] = "WARNING"
+    # Si no se especifica, respeta la variable de entorno o config por defecto
+    return args
+
+configure_log_level_from_args()
 logger = get_logger("set-telegram-webhook")
 
 def set_telegram_webhook():

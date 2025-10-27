@@ -2,12 +2,27 @@
 Path: run_transcriber.py
 """
 
+
 import argparse
+import os
 from colorama import init, Fore, Style
 
 from src.shared.logger import get_logger
 from src.infrastructure.audio.local_audio_transcriber import LocalAudioTranscriber
 
+def configure_log_level_from_args():
+    "Configura el nivel de log desde los argumentos de línea de comandos."
+    parser = argparse.ArgumentParser(description=f"{Fore.CYAN}Transcribe un archivo de audio usando Messenger Bridge{Style.RESET_ALL}", add_help=False)
+    parser.add_argument("--verbose", action="store_true", help="Muestra todos los mensajes de log (DEBUG)")
+    parser.add_argument("--quiet", action="store_true", help="Muestra solo errores y advertencias")
+    args, _ = parser.parse_known_args()
+    if args.verbose:
+        os.environ["LOG_LEVEL"] = "DEBUG"
+    elif args.quiet:
+        os.environ["LOG_LEVEL"] = "WARNING"
+    return args
+
+configure_log_level_from_args()
 logger = get_logger("run-transcriber")
 init(autoreset=True)
 
@@ -21,6 +36,8 @@ def main():
         help=f"{Fore.YELLOW}Ruta del archivo de audio a transcribir{Style.RESET_ALL}",
         required=True
     )
+    parser.add_argument("--verbose", action="store_true", help="Muestra todos los mensajes de log (DEBUG)")
+    parser.add_argument("--quiet", action="store_true", help="Muestra solo errores y advertencias")
     args = parser.parse_args()
     audio_file_path = args.audio
 
