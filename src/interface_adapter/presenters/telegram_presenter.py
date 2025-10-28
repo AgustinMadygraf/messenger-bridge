@@ -21,9 +21,7 @@ class TelegramMessagePresenter:
     def present(self, message: Message) -> list:
         "Presenta la respuesta escapando correctamente para MarkdownV2."
         # Limita la longitud de los textos logueados
-        logger.debug("Texto original: %s", message.body[:120] + ("..." if len(message.body) > 120 else ""))
         telegram_format = self.converter.convert(message.body)
-        logger.info("Texto convertido: %s", telegram_format[:120] + ("..." if len(telegram_format) > 120 else ""))
         parts = self.splitter.split(telegram_format, 4096)
         result = []
         error_logged = False

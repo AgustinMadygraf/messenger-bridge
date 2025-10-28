@@ -19,16 +19,10 @@ class GenerateAgentResponseUseCase:
 
     def execute(self, _conversation_id: str, user_message: Message, prompt: str = None) -> Message:
         "Genera una respuesta para el mensaje del usuario. El prompt puede ser texto transcripto si el mensaje es de audio."
-        logger.debug("[USECASE] Mensaje recibido: %s", user_message.body)
-
-        # Si se provee un prompt (texto transcripto), usarlo. Si no, usar el body del mensaje.
         if prompt is not None:
             agent_bot_response = self.agent_bot_service.get_response(prompt)
         else:
             agent_bot_response = self.agent_bot_service.get_response(user_message.body)
-
-        logger.debug("[USECASE] Respuesta de Rasa: %s", agent_bot_response)
-
         if isinstance(agent_bot_response, str) and "Error al comunicarse con Rasa" in agent_bot_response:
             friendly_message = (
                 "Lo sentimos, el servidor no está disponible en este momento. "

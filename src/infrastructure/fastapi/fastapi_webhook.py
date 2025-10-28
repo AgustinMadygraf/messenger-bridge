@@ -67,7 +67,6 @@ async def webhook(request: Request):
     form = await request.form()
     user_message = form.get('Body', '')
     from_number = form.get('From', '')
-    logger.debug("Datos recibidos: %s", dict(form))
     logger.info("[Twilio] Mensaje recibido de %s: %s", from_number, user_message)
 
     # --- Manejo de archivos multimedia ---
@@ -97,8 +96,6 @@ async def telegram_webhook(request: Request):
     "Webhook para manejar mensajes entrantes de Telegram "
     logger.info("[Telegram] Webhook POST recibido")
     update = await request.json()
-    logger.debug("[Telegram] Payload recibido: %s", update)
-
     message = update.get("message")
     if not message:
         logger.info("[Telegram] No es un mensaje válido. Ignorando.")
@@ -126,7 +123,6 @@ async def telegram_webhook(request: Request):
         async with httpx.AsyncClient() as client:
             for payload in payloads:
                 resp = await client.post(TELEGRAM_API_URL, json=payload)
-                logger.debug("[Telegram] Respuesta enviada. Status: %s, Body: %s", resp.status_code, resp.text)
                 await asyncio.sleep(3)  # <-- Delay de 3 segundos entre mensajes
         return PlainTextResponse("OK", status_code=200)
 
@@ -182,7 +178,6 @@ async def telegram_webhook(request: Request):
         }
         async with httpx.AsyncClient() as client:
             resp = await client.post(TELEGRAM_API_URL, json=payload)
-            logger.debug("[Telegram] Respuesta enviada. Status: %s, Body: %s", resp.status_code, resp.text)
         return PlainTextResponse("OK", status_code=200)
 
     logger.info("[Telegram] No es un mensaje de texto ni de voz. Ignorando.")

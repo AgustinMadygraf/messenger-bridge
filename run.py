@@ -58,9 +58,7 @@ def start_ngrok_service(port, endpoints, times):
                 logger.info("[Twilio] ngrok iniciado en %s.", public_url)
                 endpoints["Twilio"] = public_url
                 endpoints["Telegram"] = f"{public_url}/telegram/webhook"
-                print("\033[92m✔️ ngrok iniciado correctamente tras reintento.\033[0m")
             else:
-                print("\033[91m❌ ngrok sigue sin iniciar. Revisa la configuración y vuelve a intentarlo.\033[0m")
                 endpoints["Twilio"] = None
         else:
             endpoints["Twilio"] = None

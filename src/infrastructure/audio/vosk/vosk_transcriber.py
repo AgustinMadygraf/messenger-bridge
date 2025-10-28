@@ -24,12 +24,6 @@ class VoskTranscriber:
     def __init__(self, model_path: str = "model"):
         self.vosk_enabled = False
         self.vosk_model = None
-
-        logger.debug("Intentando inicializar VoskTranscriber con model_path=%s", model_path)
-        logger.debug("Model: %s, KaldiRecognizer: %s", Model, KaldiRecognizer)
-        logger.debug("¿Existe el directorio del modelo?: %s", os.path.isdir(model_path))
-        logger.debug("Ruta absoluta del modelo: %s", os.path.abspath(model_path))
-
         # Si no existe el modelo, descargar y descomprimir
         if not os.path.isdir(model_path):
             logger.warning("El modelo Vosk no se encontró en %s. Descargando...", model_path)
@@ -84,7 +78,6 @@ class VoskTranscriber:
         try:
             wf = wave.open(wav_path, "rb")
             if wf.getnchannels() != 1 or wf.getsampwidth() != 2 or wf.getcomptype() != "NONE":
-                logger.debug("Ajustando WAV a formato PCM 16bit mono para Vosk.")
                 audio = AudioSegment.from_wav(wav_path).set_channels(1).set_sample_width(2)
                 audio.export(wav_path, format="wav")
                 wf = wave.open(wav_path, "rb")

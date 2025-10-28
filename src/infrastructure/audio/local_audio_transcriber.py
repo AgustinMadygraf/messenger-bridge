@@ -35,7 +35,6 @@ class LocalAudioTranscriber(AudioTranscriberGateway):
 
         wav_path = audio_file_path + ".wav"
         try:
-            logger.debug("Convirtiendo %s a WAV temporal: %s", audio_file_path, wav_path)
             if not PydubConverter.to_wav(audio_file_path, wav_path):
                 return AudioTranscription(
                     text=f"Error en la conversión: No se pudo convertir {audio_file_path} a WAV.",
@@ -54,7 +53,6 @@ class LocalAudioTranscriber(AudioTranscriberGateway):
         if os.path.exists(wav_path):
             try:
                 os.remove(wav_path)
-                logger.debug("Archivo temporal eliminado: %s", wav_path)
             except OSError as e:
                 logger.warning("No se pudo eliminar el archivo temporal %s: %s", wav_path, e)
 

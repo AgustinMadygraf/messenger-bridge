@@ -15,7 +15,6 @@ class PydubConverter:
     def to_wav(input_path: str, output_path: str) -> bool:
         "Convierte un archivo de audio a formato WAV. Devuelve True si tuvo éxito."
         try:
-            logger.debug("Convirtiendo %s a WAV: %s", input_path, output_path)
             audio = AudioSegment.from_file(input_path)
             audio.export(output_path, format="wav")
             logger.info("Conversión a WAV exitosa: %s", output_path)
