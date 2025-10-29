@@ -9,6 +9,7 @@ import tempfile
 import httpx
 from fastapi import FastAPI, Request, Response
 from fastapi.responses import PlainTextResponse
+from fastapi.middleware.cors import CORSMiddleware
 import uvicorn
 import requests
 
@@ -59,6 +60,15 @@ telegram_controller = TelegramMessageController(generate_agent_bot_use_case, tel
 twilio_controller = TwilioMessageController(generate_agent_bot_use_case, twilio_presenter)
 
 app = FastAPI()
+
+# Agrega el middleware CORS
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],  # Puedes restringir esto a tus dominios
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 @app.post("/twilio/webhook")
 async def webhook(request: Request):
@@ -188,6 +198,32 @@ async def index():
     "Página de inicio simple para verificar que el servidor está funcionando."
     return {"message": "Bienvenido al webhook de FastAPI"}
 
+@app.post("/webchat/webhook")
+async def webchat_webhook(request: Request):
+    """
+    Endpoint para recibir mensajes del chat web y responder con el mensaje del agente.
+    Espera un JSON: { "user_id": "...", "text": "mensaje del usuario" }
+    Responde: { "role": "assistant", "text": "respuesta del agente" }
+    """
+    data = await request.json()
+    user_id = data.get("user_id", None)
+    user_text = data.get("text", "")
+    if not user_id or not user_text:
+        return {"role": "assistant", "text": "Faltan datos en la solicitud."}
+
+    # Construir entidad Message
+    webchat_message = Message(
+        to=user_id,
+        body=user_text
+    )
+
+    # Generar respuesta usando el caso de uso conversacional
+    response_message = generate_agent_bot_use_case.execute(user_id, webchat_message)
+
+    return {
+        "role": "assistant",
+        "text": response_message.body
+    }
 
 def run_fastapi_webhook(host="0.0.0.0", port=8443):
     "Función para ejecutar el servidor FastAPI"
