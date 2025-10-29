@@ -123,16 +123,13 @@ async def telegram_webhook(request: Request):
         formatted_responses = telegram_presenter.present(response_message)
         if not isinstance(formatted_responses, list):
             formatted_responses = [formatted_responses]
-        payloads = [
-            {
-                "chat_id": chat_id,
-                **resp
-            }
-            for resp in formatted_responses
-        ]
         async with httpx.AsyncClient() as client:
-            for payload in payloads:
-                resp = await client.post(TELEGRAM_API_URL, json=payload)
+            for resp in formatted_responses:
+                payload = {
+                    "chat_id": chat_id,
+                    **resp
+                }
+                await client.post(TELEGRAM_API_URL, json=payload)
                 await asyncio.sleep(3)  # <-- Delay de 3 segundos entre mensajes
         return PlainTextResponse("OK", status_code=200)
 
@@ -166,6 +163,7 @@ async def telegram_webhook(request: Request):
                 logger.error("[Telegram] Error al descargar/transcribir audio: %s", e)
 
         if transcription and not transcription.is_empty():
+
             transcribed_text = transcription.text
         else:
             transcribed_text = "[No se pudo transcribir el audio. Enviando audio original.]"
@@ -181,13 +179,17 @@ async def telegram_webhook(request: Request):
         chat_id, response_text = await telegram_controller.handle(chat_id, audio_message, None, transcribed_text=transcribed_text)
         logger.info("[Telegram] Respuesta generada para audio: %s", response_text)
         response_message = Message(to=chat_id, body=response_text)
-        formatted_response = telegram_presenter.present(response_message)
-        payload = {
-            "chat_id": chat_id,
-            **formatted_response
-        }
+        formatted_responses = telegram_presenter.present(response_message)
+        if not isinstance(formatted_responses, list):
+            formatted_responses = [formatted_responses]
         async with httpx.AsyncClient() as client:
-            resp = await client.post(TELEGRAM_API_URL, json=payload)
+            for resp in formatted_responses:
+                payload = {
+                    "chat_id": chat_id,
+                    **resp
+                }
+                await client.post(TELEGRAM_API_URL, json=payload)
+                await asyncio.sleep(3)  # Delay de 3 segundos entre mensajes
         return PlainTextResponse("OK", status_code=200)
 
     logger.info("[Telegram] No es un mensaje de texto ni de voz. Ignorando.")
