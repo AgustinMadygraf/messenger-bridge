@@ -34,15 +34,23 @@ def set_telegram_webhook():
         return
 
     # Usa el dominio personalizado si está configurado
-    ngrok_domain = config.get("NGROK_DOMAIN")
-    if not ngrok_domain:
-        logger.error("NGROK_DOMAIN no está configurado en las variables de entorno.")
+    api_domain = config.get("API_DOMAIN")
+    if not api_domain:
+        logger.error("API_DOMAIN no está configurado en las variables de entorno.")
         return
 
-    webhook_url = f"https://{ngrok_domain}/telegram/webhook"
+    # Quita el prefijo https:// si existe
+    api_domain = api_domain.replace("https://", "").replace("http://", "")
+
+    webhook_url = f"https://{api_domain}/telegram/webhook"
     set_webhook_url = f"https://api.telegram.org/bot{telegram_api_key}/setWebhook?url={webhook_url}"
 
+    logger.debug("Intentando configurar webhook de Telegram.")
+    logger.debug("URL del webhook: %s", webhook_url)
+    logger.debug("URL de la petición setWebhook: %s", set_webhook_url)
+
     response = requests.get(set_webhook_url, timeout=25)
+    logger.debug("Respuesta completa de Telegram: %s", response.text)
     if response.status_code == 200:
         logger.info("Webhook de Telegram configurado correctamente: %s", webhook_url)
     else:

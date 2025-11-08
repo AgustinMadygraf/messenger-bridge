@@ -23,7 +23,7 @@ class NgrokService:
     def start(self):
         """
         Inicia un túnel ngrok en el puerto especificado.
-        Si NGROK_DOMAIN está definido en la configuración, lo usa como dominio reservado.
+        Si API_DOMAIN está definido en la configuración, lo usa como dominio reservado.
         Devuelve la URL pública o None si falla.
         """
         # Capture stdout/stderr temporarily to suppress ngrok output
@@ -34,7 +34,7 @@ class NgrokService:
         sys.stdout = temp_stdout
         sys.stderr = temp_stderr
 
-        ngrok_domain = self.config.get("NGROK_DOMAIN")
+        ngrok_domain = self.config.get("API_DOMAIN")
         try:
             if ngrok_domain:
                 self.logger.info("Iniciando ngrok con dominio reservado: %s", ngrok_domain)

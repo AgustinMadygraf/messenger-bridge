@@ -54,7 +54,7 @@ Edita el archivo `.env` con tus credenciales:
 
 ```
 # NGROK configuration
-NGROK_DOMAIN=your_domain_here.ngrok-free.app
+API_DOMAIN=your_domain_here.ngrok-free.app
 
 # Telegram Bot configuration
 TELEGRAM_API_KEY=your_telegram_api_key_here
@@ -75,7 +75,7 @@ RASA_API_URL=http://localhost:5005/webhooks/rest/webhook
 Para utilizar un dominio personalizado de ngrok:
 1. Registra una cuenta en [ngrok](https://ngrok.com/)
 2. Configura un dominio fijo en el panel de control
-3. Asegúrate de que la variable `NGROK_DOMAIN` en `.env` contenga tu dominio personalizado
+3. Asegúrate de que la variable `API_DOMAIN` en `.env` contenga tu dominio personalizado
 
 ### Configuración de Telegram
 
