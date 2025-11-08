@@ -26,7 +26,7 @@ class TelegramMessagePresenter:
         result = []
         error_logged = False
         for part in parts:
-            logger.debug("Texto a validar para MarkdownV2: %r", part)  # <-- Línea sugerida
+            logger.debug("Texto a validar para MarkdownV2: %r", part)
             try:
                 self.validator.validate(part)
                 result.append({
@@ -35,7 +35,7 @@ class TelegramMessagePresenter:
                 })
             except ValueError as e:
                 if not error_logged:
-                    logger.error("MarkdownV2 desbalanceado: %s | Texto: %r", e, part)  # <-- Línea sugerida
+                    logger.error("MarkdownV2 desbalanceado: %s | Texto: %r", e, part)
                     error_logged = True
                 # Devuelve el texto sin formato si está desbalanceado
                 result.append({
